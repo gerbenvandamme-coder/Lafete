@@ -1,0 +1,68 @@
+/* ===== HET DILEMMA ===== */
+.dil-center{justify-content:center;gap:18px}
+.dil-q{margin:0;font-size:clamp(1.4rem,6.4vw,2rem);font-weight:900;line-height:1.25;text-align:center;text-wrap:balance}
+.dil-q b{color:#c4b5fd}
+
+.dil-vote-btns{display:flex;flex-direction:column;gap:14px;padding-top:12px}
+.dil-btn{min-height:104px;border-radius:34px;font-size:2rem;letter-spacing:.14em;gap:16px}
+.dil-btn .ic{width:1.1em;height:1.1em;stroke-width:2.8}
+.dil-btn.yes{
+  background:linear-gradient(135deg,rgba(16,185,129,.7),rgba(52,211,153,.34));
+  border-top-color:rgba(255,255,255,.45);border-left-color:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 18px 44px -16px rgba(16,185,129,.8);
+}
+.dil-btn.yes:active{box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 0 6px rgba(16,185,129,.22),0 0 56px 8px rgba(16,185,129,.7)}
+.dil-btn.no{
+  background:linear-gradient(135deg,rgba(244,63,94,.7),rgba(190,18,60,.4));
+  border-top-color:rgba(255,255,255,.45);border-left-color:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 18px 44px -16px rgba(244,63,94,.8);
+}
+.dil-btn.no:active{box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 0 6px rgba(244,63,94,.22),0 0 56px 8px rgba(244,63,94,.7)}
+
+.dil-mask{
+  position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:rgba(3,3,6,.9);-webkit-backdrop-filter:blur(30px);backdrop-filter:blur(30px);
+  opacity:0;pointer-events:none;transform:scale(1.08);
+  transition:opacity .25s var(--out),transform .6s var(--spring);
+}
+.dil-mask .ic{width:72px;height:72px;color:#c4b5fd;filter:drop-shadow(0 0 22px rgba(167,139,250,.8))}
+.dil-mask b{font-size:1.8rem;font-weight:900;letter-spacing:.2em}
+.dil-mask small{font-weight:800;letter-spacing:.24em;color:var(--muted)}
+.masked .dil-mask{opacity:1;pointer-events:auto;transform:none}
+
+.dil-pred{--rgb:167,139,250;display:flex;align-items:center;justify-content:center;gap:16px;width:100%;padding:22px 12px}
+.dil-pred .step{width:76px;height:76px;border-radius:28px}
+.dil-pred .step .ic{width:32px;height:32px}
+.dil-pred .big-num{min-width:2.2ch;text-align:center;text-shadow:0 0 40px rgba(167,139,250,.7)}
+.dil-pred .big-num.bump{animation:bump .5s var(--spring)}
+
+.dil-counters{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+.dil-count{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 10px}
+.dil-count small{font-size:.9rem;font-weight:900;letter-spacing:.3em}
+.dil-count b{font-size:clamp(4rem,24vw,6.5rem);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;display:inline-block}
+.dil-count b.bump{animation:bump .4s var(--spring)}
+.dil-count.yes{--rgb:52,211,153;border-color:rgba(52,211,153,.5)}
+.dil-count.yes small,.dil-count.yes b{color:#5eead4}
+.dil-count.yes b{text-shadow:0 0 44px rgba(16,185,129,.85)}
+.dil-count.no{--rgb:251,113,133;border-color:rgba(251,113,133,.5)}
+.dil-count.no small,.dil-count.no b{color:#fb7185}
+.dil-count.no b{text-shadow:0 0 44px rgba(244,63,94,.85)}
+
+.dil-verdict{--rc:94,234,212;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;animation:dilRise .7s var(--spring) both}
+.dil-verdict[data-diff="1"]{--rc:251,191,36}
+.dil-verdict[data-diff="x"]{--rc:255,77,141}
+.dil-verdict b{font-size:clamp(1.8rem,9vw,2.6rem);font-weight:900;letter-spacing:.08em;color:rgb(var(--rc));text-shadow:0 0 40px rgba(var(--rc),.8)}
+.dil-verdict span{font-weight:800;letter-spacing:.14em;font-size:.8rem;color:var(--muted)}
+@keyframes dilRise{from{opacity:0;transform:translateY(20px) scale(.9)}to{opacity:1;transform:none}}
+
+.dil-open{list-style:none;margin:0;padding:2px;width:100%;max-height:30vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.dil-open::-webkit-scrollbar{display:none}
+.dil-open .prow{min-height:56px;padding:6px 14px 6px 8px}
+.vtag{padding:6px 12px;border-radius:99px;font-size:.72rem;font-weight:900;letter-spacing:.16em}
+.vtag.yes{color:#5eead4;background:rgba(16,185,129,.16);border:1px solid rgba(52,211,153,.6)}
+.vtag.no{color:#fb7185;background:rgba(244,63,94,.16);border:1px solid rgba(251,113,133,.6)}
+.dil-rtext{display:block;font-size:.9rem;line-height:1.25}
+.big-num{font-size:clamp(4.2rem,24vw,6.6rem);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;display:inline-block}
+.dil-center .sheet-text{text-align:center;font-size:.85rem;letter-spacing:.1em}
+.dil-open .prow .nm small{display:block;margin-top:2px}
+.gl-pop-reset{animation:none}

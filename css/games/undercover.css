@@ -1,0 +1,62 @@
+/* ===== Elimination ===== */
+#s-uc-elim{--rc:243,244,255}
+.elim-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.elim-stage .who{margin:0;font-size:clamp(2rem,10vw,3.2rem);font-weight:900;line-height:1.05;overflow-wrap:anywhere;opacity:0}
+.elim-stage .was{margin:0;font-size:1rem;font-weight:800;letter-spacing:.3em;color:var(--muted);opacity:0}
+.role-orb{position:relative;display:grid;place-items:center;width:150px;height:150px;border-radius:50%;margin:10px 0;color:rgb(var(--rc));opacity:0;background:radial-gradient(circle,rgba(var(--rc),.25),rgba(var(--rc),.04) 70%);border:1px solid rgba(var(--rc),.5);box-shadow:0 0 70px rgba(var(--rc),.5)}
+.role-orb .ic{width:70px;height:70px;stroke-width:1.7}
+.ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(var(--rc),.7);opacity:0;pointer-events:none}
+.role-big{margin:0;font-size:clamp(2.4rem,13vw,4.2rem);font-weight:900;letter-spacing:.06em;line-height:1;color:rgb(var(--rc));text-shadow:0 0 50px rgba(var(--rc),.75);opacity:0}
+#s-uc-elim.play .who{animation:rise .7s var(--spring) .35s both}
+#s-uc-elim.play .was{animation:fadeUp .6s var(--out) .95s both}
+#s-uc-elim.play .role-orb{animation:slam 1s var(--spring) 1.4s both,blurIn .5s var(--out) 1.4s both}
+#s-uc-elim.play .role-big{animation:slam 1s var(--spring) 1.55s both,blurIn .5s var(--out) 1.55s both}
+#s-uc-elim.play .ring{animation:ring 1.5s var(--out) 1.45s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slam{from{opacity:0;transform:scale(2.8) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes blurIn{from{filter:blur(16px)}to{filter:blur(0)}}
+@keyframes ring{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}
+
+/* ===== Phase 1: specialists, mutators, shroud, referee ===== */
+.spec-pills .pill{display:inline-flex;align-items:center;gap:8px}
+.spec-pills .pill .ic{width:18px;height:18px;flex:none}
+.spec-pills .pill[aria-disabled="true"]{opacity:.38}
+.spec-note{margin:0;padding:0 18px 16px;font-size:.85rem;min-height:2.6em}
+
+.brief-list{display:flex;flex-direction:column;gap:8px;width:100%}
+.brief-list:empty{display:none}
+.brief{margin:0;padding:10px 14px;border-radius:16px;font-size:.82rem;font-weight:800;line-height:1.35;letter-spacing:.02em;text-align:center;overflow-wrap:anywhere;color:var(--text);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.brief.sub{color:#fde047;border-color:rgba(253,224,71,.4)}
+.sub-tag{color:#fde047}
+
+.mut{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px;margin:0 0 12px;box-shadow:0 0 28px rgba(167,139,250,.25)}
+.mut[hidden]{display:none}
+.mut-ic{flex:none;display:grid;place-items:center;color:#c4b5fd}
+.mut-ic .ic{width:26px;height:26px}
+.mut-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mut-body b{font-size:.74rem;letter-spacing:.18em;color:#c4b5fd}
+.mut-body span{font-size:.92rem;font-weight:800;line-height:1.3;overflow-wrap:anywhere}
+.mut-roll{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:16px;cursor:pointer;color:var(--text);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);transition:transform .5s var(--spring)}
+.mut-roll:active{transform:scale(.88) rotate(-25deg);transition-duration:.1s}
+.mut-roll .ic{width:24px;height:24px}
+.mut-flash{animation:mutIn .6s var(--spring)}
+@keyframes mutIn{from{opacity:.25;transform:scale(.94)}to{opacity:1;transform:none}}
+
+#s-uc-elim.sealed .role-big{font-size:clamp(1.6rem,8.5vw,2.6rem);line-height:1.1;text-align:center}
+#s-uc-elim.sealed .role-orb{border-style:dashed}
+.shroud-note{margin:0;font-size:.8rem;font-weight:800;letter-spacing:.24em;text-align:center;color:#c4b5fd;opacity:0}
+.shroud-note[hidden]{display:none}
+#s-uc-elim.play .shroud-note{animation:fadeUp .6s var(--out) 2.1s both}
+.role.r-sealed{color:#c4b5fd;border-color:rgba(196,181,253,.5);background:rgba(167,139,250,.14)}
+
+.victory[data-winner="jester"]{--w1:253,224,71;--w2:168,85,247}
+
+#m-uc-guess [hidden]{display:none}
+.judge{display:flex;flex-direction:column;gap:12px;text-align:center}
+.judge-head{display:flex;align-items:center;justify-content:center;gap:10px;color:#fde047}
+.judge-head .ic{width:28px;height:28px;flex:none}
+.judge-head .eyebrow{margin:0}
+.judge-tiles{display:grid;gap:10px}
+.judge-tiles .wtile{padding:14px 16px}
+.judge-tiles .wtile strong{display:block;font-size:1.5rem;overflow-wrap:anywhere}
+.judge-btn{min-height:76px}

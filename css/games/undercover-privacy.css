@@ -1,0 +1,51 @@
+/* ===== Phase 2: hold-to-reveal shutter, header toggles ===== */
+.top-right{display:flex;align-items:center;gap:10px}
+.sys-bar{display:flex;align-items:center;gap:8px}
+.sys-btn{
+  width:48px;height:48px;border-radius:18px;display:grid;place-items:center;cursor:pointer;padding:0;color:var(--muted);
+  transition:transform .5s var(--spring),color .3s,box-shadow .35s var(--out);
+}
+.sys-btn .ic{width:22px;height:22px}
+.sys-btn:active{transform:scale(.9);transition-duration:.1s}
+.sys-audio[aria-pressed="true"]{color:rgba(244,245,255,.38)}
+
+/* One card look for every role: identical glow and gradient, so no role can be read from a reflection. */
+.hold-card{
+  position:relative;width:min(86vw,360px);height:min(52vh,380px);height:min(52dvh,380px);border-radius:36px;
+  display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:hidden;
+  background:linear-gradient(150deg,rgba(255,255,255,.14),rgba(255,255,255,.04)),rgba(18,16,34,.72);
+  border:1px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.4);border-left-color:rgba(255,255,255,.4);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 30px 80px -20px rgba(99,102,241,.6);
+  -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+}
+.hold-card.peek-card{width:100%;height:auto;min-height:230px}
+.hold-glyph{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;transition:opacity .12s linear}
+.hold-glyph .q{font-size:7rem;font-weight:900;line-height:1;background:linear-gradient(135deg,#c4b5fd,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hold-card.is-open .hold-glyph{opacity:0}
+
+.secret{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;width:100%;max-width:100%;
+  transition:filter .18s var(--out),opacity .18s linear,transform .18s var(--out);
+}
+.secret.shutter-closed{filter:blur(26px);opacity:0;transform:scale(.92);transition-duration:.12s;pointer-events:none}
+.secret strong{display:block;max-width:100%;font-weight:900;line-height:1.1;overflow-wrap:anywhere;hyphens:auto;text-shadow:0 0 40px rgba(167,139,250,.7)}
+
+/* Two-line tactical briefing: same shape for every role, so every card takes the same time to read. */
+.reveal-tip{display:flex;flex-direction:column;gap:6px;width:100%;margin:0}
+.tip-line{
+  display:block;padding:8px 12px;border-radius:14px;font-size:.8rem;font-weight:800;line-height:1.35;color:var(--text);
+  overflow-wrap:anywhere;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+}
+
+.hold-actions{display:flex;flex-direction:column;gap:12px}
+.hold-btn{min-height:96px;font-size:1.02rem;letter-spacing:.1em;touch-action:none;-webkit-user-select:none;user-select:none}
+.hold-btn.holding{
+  transform:scale(.97);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 0 6px rgba(139,92,246,.22),0 0 46px 6px rgba(139,92,246,.55);
+}
+#btnNextPlayer,.peek-actions .btn{min-height:64px}
+.peek-actions{display:flex;flex-direction:column;gap:12px;width:100%}
+
+@media (prefers-reduced-motion:reduce){
+  .secret,.hold-glyph{transition-duration:.01s}
+}

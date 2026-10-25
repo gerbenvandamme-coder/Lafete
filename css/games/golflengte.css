@@ -1,0 +1,113 @@
+/* ===== GOLFLENGTE ===== */
+.gl-center{justify-content:center;gap:16px}
+.gl-gids{display:flex;align-items:center;gap:12px;padding:10px 20px 10px 10px;max-width:100%}
+.gl-gtext{display:flex;flex-direction:column;text-align:left;min-width:0}
+.gl-gtext small{font-size:.66rem;font-weight:900;letter-spacing:.2em;color:var(--muted)}
+.gl-gtext b{font-size:1.15rem;font-weight:900;overflow-wrap:anywhere}
+
+.gl-card{--rc:94,234,212;width:100%;padding:18px 6px 16px;display:flex;flex-direction:column;gap:14px}
+.gl-card[data-pts="3"]{--rc:34,211,238}
+.gl-card[data-pts="2"]{--rc:251,191,36}
+.gl-card[data-pts="0"]{--rc:255,77,141}
+.gl-card.celebrate{animation:glGlow 1.6s var(--out)}
+@keyframes glGlow{
+  0%{box-shadow:inset 0 1px 1px rgba(255,255,255,.25),0 0 0 0 rgba(var(--rc),.85),0 0 60px 6px rgba(var(--rc),.6)}
+  100%{box-shadow:inset 0 1px 1px rgba(255,255,255,.25),0 0 0 40px rgba(var(--rc),0),0 0 0 0 rgba(var(--rc),0)}
+}
+.gl-ends{display:flex;justify-content:space-between;gap:12px;padding:0 18px}
+.gl-end{flex:1;min-width:0;font-weight:900;font-size:clamp(.95rem,4.2vw,1.25rem);line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
+.gl-end.l{text-align:left;color:#67e8f9;text-shadow:0 0 24px rgba(34,211,238,.5)}
+.gl-end.r{text-align:right;color:#f9a8d4;text-shadow:0 0 24px rgba(236,72,153,.5)}
+
+/* ----- 3D half-moon dial -----
+   Het perspectief en de draaiing hebben hun oorsprong in de naaf (170/190 = 89.5 % van de hoogte),
+   zodat kantelen en inzoomen de hoeken rond de naaf niet vervormen. Houd --rx gelijk aan TILT_X in golflengte.js. */
+.gl-wrap{padding:0 12px;perspective:820px;perspective-origin:50% 89.5%}
+.gl-track{
+  position:relative;width:100%;max-width:440px;margin:0 auto;touch-action:none;cursor:pointer;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;outline:none;
+}
+.gl-track:focus-visible{outline:2px solid rgba(255,255,255,.9);outline-offset:6px;border-radius:24px}
+.gl-dial{
+  --rx:8deg;--ry:0deg;--lift:0px;--gh:190;--v:0;
+  display:block;width:100%;height:auto;overflow:visible;
+  transform-origin:50% 89.5%;
+  transform:rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--lift));
+  transition:transform .7s var(--spring);
+  will-change:transform;
+}
+.gl-track.drag .gl-dial{--lift:28px;transition:transform .18s var(--out)}
+
+.gl-rim{filter:drop-shadow(0 0 10px rgba(139,92,246,.45))}
+.gl-face{stroke:rgba(255,255,255,.3);stroke-width:1.5}
+.gl-track.drag .gl-face{stroke:hsl(var(--gh) 90% 75% / .7)}
+.gl-inner{fill:none;stroke:rgba(255,255,255,.16);stroke-width:1.5;stroke-dasharray:2 5}
+.gl-base{stroke:rgba(255,255,255,.22);stroke-width:1.5;stroke-linecap:round}
+.gl-gloss{pointer-events:none;opacity:.8}
+
+/* Tikken lichten op in de buurt van de naald (--n = 0..1, gezet vanuit JS). */
+.gl-tick{
+  stroke:var(--text);stroke-linecap:round;
+  stroke:color-mix(in srgb,hsl(var(--gh) 95% 78%) calc(var(--n,0) * 100%),var(--text));
+  stroke-width:calc(1.4px + var(--n,0) * 2.4px);
+  opacity:calc(.34 + var(--n,0) * .66);
+}
+.gl-tick.maj{stroke-width:calc(2.8px + var(--n,0) * 2px);opacity:calc(.8 + var(--n,0) * .2)}
+
+.gl-zones{opacity:0;transition:opacity .6s var(--out)}
+.gl-dial.peek .gl-zones,.gl-dial.open .gl-zones{opacity:1}
+.gl-zone{transform-box:view-box;transform-origin:160px 170px;animation:glZone .8s var(--spring) both}
+.gl-zone.p2{fill:#fbbf24}
+.gl-zone.p3{fill:#fb923c}
+.gl-zone.p4{fill:#5eead4}
+@keyframes glZone{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+
+/* Naald met schaduw, gloed die meekleurt met de positie en een naijlende spooknaald. */
+.gl-needle,.gl-ghost{transform-box:view-box;transform-origin:160px 170px}
+.gl-needle{transition:transform .42s var(--spring),opacity .3s}
+.gl-ghost{opacity:0;transition:transform .75s var(--out),opacity .4s}
+.gl-ghost line{stroke:hsl(var(--gh) 90% 70% / .55);stroke-width:5;stroke-linecap:round}
+.gl-track.drag .gl-ghost{opacity:.6}
+.gl-needle .shade{stroke:rgba(0,0,0,.4);stroke-width:5;stroke-linecap:round}
+.gl-needle .glow{
+  stroke:hsl(var(--gh) 90% 65% / .35);stroke-linecap:round;
+  stroke-width:calc(10px + var(--v) * 12px);transition:stroke-width .2s var(--out);
+}
+.gl-needle .main{stroke:#fff;stroke-width:3.5;stroke-linecap:round}
+.gl-tip{fill:#fff;stroke:hsl(var(--gh) 90% 65%);stroke-width:4;transition:r .3s var(--spring)}
+.gl-aura{
+  fill:hsl(var(--gh) 95% 65%);opacity:0;
+  transform-box:fill-box;transform-origin:center;transition:opacity .3s,transform .45s var(--spring);
+}
+.gl-track.drag .gl-aura{opacity:calc(.4 + var(--v) * .45);transform:scale(calc(1.4 + var(--v) * .8))}
+.gl-track[aria-disabled="false"]:not(.drag) .gl-aura{animation:glPulse 1.9s ease-in-out infinite}
+@keyframes glPulse{0%,100%{opacity:.08;transform:scale(.9)}50%{opacity:.42;transform:scale(1.5)}}
+
+.gl-hub{transform-box:view-box;transform-origin:160px 170px;stroke:hsl(var(--gh) 90% 65%);stroke-width:3;transition:transform .4s var(--spring)}
+.gl-track.drag .gl-hub{transform:scale(1.25)}
+.gl-track.drag .gl-needle{transition:opacity .3s}
+.gl-track[aria-disabled="true"] .gl-needle{opacity:.55}
+.gl-dial.open .gl-needle{opacity:1}
+.gl-dial.peek .gl-needle,.gl-dial.peek .gl-ghost{opacity:0}
+.gl-card[data-pts="4"] .gl-tip,.gl-card[data-pts="3"] .gl-tip{fill:#5eead4;stroke:#fff}
+.gl-card[data-pts="4"] .gl-needle .glow,.gl-card[data-pts="3"] .gl-needle .glow{stroke:rgba(94,234,212,.5)}
+
+.gl-status{margin:0;padding:0 18px;text-align:center;font-weight:800;letter-spacing:.14em;font-size:.78rem;color:var(--muted);min-height:2.4em;overflow-wrap:anywhere}
+
+.gl-result{--rc:94,234,212;display:flex;flex-direction:column;align-items:center;gap:4px;animation:glPop 1s var(--spring) both}
+.gl-result[data-pts="3"]{--rc:34,211,238}
+.gl-result[data-pts="2"]{--rc:251,191,36}
+.gl-result[data-pts="0"]{--rc:255,77,141}
+.gl-pts{font-size:clamp(3.4rem,18vw,5.2rem);font-weight:900;line-height:1;color:rgb(var(--rc));text-shadow:0 0 50px rgba(var(--rc),.85)}
+.gl-verdict{font-weight:900;letter-spacing:.2em;font-size:1rem;color:rgb(var(--rc))}
+@keyframes glPop{from{opacity:0;transform:scale(2.4) rotate(-6deg)}to{opacity:1;transform:none}}
+
+.gl-sub{display:block;margin-top:2px;font-size:.68rem;font-weight:800;letter-spacing:.14em;color:var(--muted)}
+.gl-rtext{display:block;font-size:1rem}
+
+@media (max-height:640px){
+  .gl-track{max-width:340px}
+}
+@media (prefers-reduced-motion:reduce){
+  .gl-zone,.gl-needle,.gl-ghost,.gl-hub,.gl-zones,.gl-dial,.gl-aura{animation:none;transition-duration:.001ms}
+}

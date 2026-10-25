@@ -1,0 +1,59 @@
+/* ===== KAMELEON ===== */
+.kam-center{justify-content:center;gap:18px}
+.kam-badge{
+  display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;flex:none;color:#d9ff4a;
+  background:rgba(190,255,60,.14);border:1px solid rgba(190,255,60,.65);
+  box-shadow:0 0 18px rgba(190,255,60,.7);animation:kamPulse 2s ease-in-out infinite;
+}
+.kam-badge .ic{width:18px;height:18px}
+@keyframes kamPulse{0%,100%{box-shadow:0 0 12px rgba(190,255,60,.5)}50%{box-shadow:0 0 28px rgba(190,255,60,.95)}}
+
+.kam-form{display:flex;flex-direction:column;gap:14px;width:100%}
+.kam-form .input{min-height:76px;font-size:1.5rem}
+
+.kam-sel{
+  display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;margin-top:8px;min-height:60px;
+  font-weight:800;animation:rise .5s var(--spring) both;
+}
+.kam-sel span{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.95rem}
+.kam-sel .btn{min-height:44px;padding:0 14px;border-radius:16px;font-size:.78rem}
+
+.kam-groups{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:2px 2px 10px;scrollbar-width:none}
+.kam-groups::-webkit-scrollbar{display:none}
+.kam-group{padding:14px;display:flex;flex-direction:column;gap:12px;animation:rise .5s var(--spring) both;animation-delay:calc(var(--i,0) * 40ms)}
+.kam-group.major{border-color:rgba(190,255,60,.55);box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 34px -8px rgba(190,255,60,.6)}
+.kam-ghead{display:flex;align-items:center;gap:12px}
+.kam-count{
+  width:44px;height:44px;border-radius:16px;display:grid;place-items:center;flex:none;font-size:1.3rem;font-weight:900;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+}
+.kam-group.major .kam-count{color:#d9ff4a;background:rgba(190,255,60,.14);border-color:rgba(190,255,60,.55)}
+.kam-label{flex:1;min-width:0;font-size:1.25rem;font-weight:900;overflow-wrap:anywhere}
+.kam-members{display:flex;flex-wrap:wrap;gap:8px}
+.kam-chip{
+  min-height:54px;padding:6px 14px;border-radius:18px;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  color:var(--text);font:inherit;text-align:left;cursor:pointer;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-top-color:rgba(255,255,255,.28);
+  transition:transform .5s var(--spring),box-shadow .35s var(--out),border-color .3s,background .3s;
+}
+.kam-chip b{font-size:.95rem;font-weight:800;line-height:1.2}
+.kam-chip small{font-size:.75rem;font-weight:700;color:var(--muted);line-height:1.2;overflow-wrap:anywhere}
+.kam-chip:active{transform:scale(.93);transition-duration:.1s}
+.kam-chip[aria-pressed="true"]{
+  transform:scale(1.05);border-color:rgba(190,255,60,.9);background:rgba(190,255,60,.14);
+  box-shadow:0 0 28px -2px rgba(190,255,60,.7);
+}
+
+.kam-sum{padding:12px 16px;margin-bottom:10px;text-align:center;font-weight:800;letter-spacing:.1em;font-size:.82rem;line-height:1.5;color:var(--muted)}
+.kam-sum b{color:#d9ff4a}
+.kam-gain{color:#d9ff4a;background:rgba(190,255,60,.12);border-color:rgba(190,255,60,.5)}
+.prow .kam-badge{margin-left:2px}
+.kam-note{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:#d9ff4a}
+
+.kam-q{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px;font-size:clamp(1.4rem,6.4vw,2rem);font-weight:900;line-height:1.25;text-align:center;text-wrap:balance}
+.kam-q.is-kam{color:#d9ff4a}
+.kam-q.is-kam .kam-badge{width:56px;height:56px}
+.kam-q.is-kam .kam-badge .ic{width:32px;height:32px}
+.kam-q.small{display:block;margin:4px 0 10px;padding:0 8px;font-size:1.05rem;font-weight:800;color:var(--muted)}
+.kam-selbox:empty{display:none}
+.kam-selbox .kam-sel{margin-top:0;margin-bottom:10px}

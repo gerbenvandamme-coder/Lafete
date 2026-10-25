@@ -1,0 +1,55 @@
+/* ===== LaFête: tekst mag nergens uit knoppen, chips of menu's vallen =====
+   Geladen als laatste stylesheet, zodat dit de vaste hoogtes en nowrap-regels uit de andere bestanden corrigeert. */
+
+/* Flex- en grid-kinderen mogen krimpen, anders duwt lange tekst de rand uit beeld. */
+.top>*,.foot>*,.big-btns>*,.pill-row>*,.hub-tools>*,.name-row>*,.roster-row>*,.prow>*,.strip>*,.roster-card>*{min-width:0}
+.wrap,.scroll,.vscroll,.center{min-width:0}
+
+/* Knoppen: hoogte groeit mee, tekst breekt netjes af. */
+.btn{
+  height:auto;min-height:68px;max-width:100%;padding:14px 22px;
+  line-height:1.15;text-align:center;letter-spacing:.06em;
+  font-size:clamp(.95rem,4.4vw,1.15rem);
+  overflow-wrap:anywhere;text-wrap:balance;
+}
+.btn-primary,.btn-danger{min-height:76px;font-size:clamp(1rem,4.8vw,1.25rem)}
+.big-btns .btn{font-size:clamp(.95rem,4.6vw,1.25rem)}
+.roster-add .btn{padding:0 18px}
+
+/* Chips en titels in de kopbalk */
+.top .chip{min-width:0;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
+.chip{max-width:100%}
+.top .title{min-width:0;flex:1;text-align:center;font-size:clamp(1.05rem,5.6vw,1.6rem);letter-spacing:.1em;overflow-wrap:anywhere;line-height:1.1}
+.logo{min-width:0}
+.logo h1.brand{white-space:nowrap}
+
+/* Pillen */
+.pill{height:auto;min-height:54px;max-width:100%;padding:10px 18px;line-height:1.2;text-align:center;overflow-wrap:anywhere}
+
+/* Instellingsrijen: de bediening zakt naar een tweede regel als er te weinig ruimte is. */
+.row{flex-wrap:wrap;row-gap:10px}
+.row-label{flex:1 1 130px;letter-spacing:.08em;font-size:clamp(.8rem,3.8vw,.95rem);line-height:1.25}
+.row .ctrl{margin-left:auto}
+.sec{letter-spacing:.16em;overflow-wrap:anywhere}
+.eyebrow{letter-spacing:.2em;overflow-wrap:anywhere}
+.how{overflow-wrap:anywhere}
+.strip-n{overflow-wrap:anywhere}
+.stage-note{overflow-wrap:anywhere}
+@media (max-width:400px){
+  .row-ic{display:none}
+  .step{width:52px;height:52px}
+  .val{min-width:36px;font-size:1.7rem}
+}
+
+/* Hub-kaarten */
+.gc-title{letter-spacing:.08em;text-align:center;text-wrap:balance;hyphens:auto}
+.gc-tag{overflow-wrap:anywhere;text-align:center;text-wrap:balance}
+.gc-meta{max-width:100%;white-space:normal;text-align:center;line-height:1.25}
+.rc-text b,.rc-text small{overflow-wrap:anywhere}
+
+/* Modals en meldingen */
+.sheet{overflow-x:hidden}
+.sheet button{max-width:100%}
+.sheet-text{overflow-wrap:anywhere}
+.toast{white-space:normal;line-height:1.3}
+.pc-tag{max-width:100%;text-align:center;overflow-wrap:anywhere}

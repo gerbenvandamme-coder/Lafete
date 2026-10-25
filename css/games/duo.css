@@ -1,0 +1,14 @@
+/* Duo-kiezer voor 1-tegen-1 spellen (Koffer met Geld, Blind Sync) */
+.duo{display:flex;flex-direction:column;gap:12px}
+.duo-row{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:26px;
+  animation:rise .6s var(--spring) both;animation-delay:calc(var(--i,0) * 60ms);
+}
+.duo-text{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.duo-text small{font-weight:800;letter-spacing:.18em;font-size:.68rem;color:var(--muted);overflow-wrap:anywhere}
+.duo-text b{font-size:1.15rem;font-weight:900;overflow-wrap:anywhere;line-height:1.15}
+.duo-ctl{display:flex;gap:8px;flex:none}
+@media (max-width:400px){
+  .duo-row{flex-wrap:wrap}
+  .duo-ctl{margin-left:auto}
+}

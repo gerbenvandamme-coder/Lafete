@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#030306">
+<meta name="color-scheme" content="dark">
+<title>Undercover · Liquid Glass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030306;
+  --font:'Outfit','Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --spring:cubic-bezier(0.34,1.56,0.64,1);
+  --out:cubic-bezier(0.22,1,0.36,1);
+  --fill:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  --edge:rgba(255,255,255,.22);
+  --text:#f4f5ff;
+  --muted:rgba(244,245,255,.58);
+  --violet:#8b5cf6;
+  --cyan:#22d3ee;
+  --magenta:#ec4899;
+  --indigo:#6366f1;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{
+  height:100%;margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--font);-webkit-text-size-adjust:100%;
+  overflow:hidden;overscroll-behavior:none;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+}
+button{font-family:inherit}
+input{-webkit-user-select:text;user-select:text}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid rgba(103,232,249,.9);outline-offset:3px}
+
+/* ===== Aurora backdrop ===== */
+.aurora{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none;background:var(--bg)}
+.blob{
+  position:absolute;width:74vmax;height:74vmax;filter:blur(70px);opacity:.5;
+  border-radius:42% 58% 63% 37%/41% 44% 56% 59%;will-change:transform,border-radius;
+}
+.b1{background:radial-gradient(circle at 40% 40%,#7c3aed,transparent 66%);top:-28vmax;left:-26vmax;animation:morph 16s ease-in-out infinite,drift1 26s ease-in-out infinite alternate}
+.b2{background:radial-gradient(circle at 50% 50%,#06b6d4,transparent 66%);bottom:-30vmax;right:-28vmax;animation:morph 19s ease-in-out infinite reverse,drift2 30s ease-in-out infinite alternate}
+.b3{background:radial-gradient(circle at 50% 50%,#d946ef,transparent 66%);top:30vh;left:-40vmax;opacity:.38;animation:morph 22s ease-in-out infinite,drift3 34s ease-in-out infinite alternate}
+.b4{background:radial-gradient(circle at 50% 50%,#4f46e5,transparent 66%);top:-10vmax;right:-38vmax;opacity:.42;animation:morph 18s ease-in-out infinite reverse,drift4 28s ease-in-out infinite alternate}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(3,3,6,.7) 100%)}
+@keyframes morph{
+  0%,100%{border-radius:42% 58% 63% 37%/41% 44% 56% 59%}
+  33%{border-radius:63% 37% 38% 62%/55% 61% 39% 45%}
+  66%{border-radius:35% 65% 55% 45%/60% 36% 64% 40%}
+}
+@keyframes drift1{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(22vw,14vh,0) scale(1.15)}100%{transform:translate3d(-4vw,28vh,0) scale(.95)}}
+@keyframes drift2{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-24vw,-12vh,0) scale(1.1)}100%{transform:translate3d(6vw,-26vh,0) scale(1.2)}}
+@keyframes drift3{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(60vw,-18vh,0) scale(1.25)}}
+@keyframes drift4{0%{transform:translate3d(0,0,0) scale(1.1)}100%{transform:translate3d(-50vw,30vh,0) scale(.9)}}
+
+/* ===== Layout ===== */
+#app{position:fixed;inset:0;height:100vh;height:100dvh;z-index:1}
+.screen{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  padding:calc(var(--safe-t) + 14px) 18px calc(var(--safe-b) + 18px);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(36px) scale(.95);
+  transition:opacity .4s var(--out),transform .6s var(--spring),visibility 0s .6s;
+}
+.screen.active{
+  opacity:1;visibility:visible;pointer-events:auto;z-index:2;transform:none;
+  transition:opacity .5s var(--out) .08s,transform .75s var(--spring) .08s,visibility 0s;
+}
+.wrap{width:100%;max-width:520px;margin:0 auto;flex:1;display:flex;flex-direction:column;min-height:0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 14px}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;min-height:0;padding:8px 0}
+.actions{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.eyebrow{margin:0;font-size:.8rem;font-weight:800;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+
+/* ===== Liquid glass ===== */
+.glass,.glass-lite{
+  background:var(--fill);
+  border:1px solid rgba(255,255,255,.08);
+  border-top-color:var(--edge);border-left-color:var(--edge);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25),inset 0 -1px 1px rgba(255,255,255,.04),0 20px 50px -22px rgba(0,0,0,.8);
+}
+.glass{
+  -webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  border-radius:28px;
+}
+.glass-lite{
+  -webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+  border-radius:24px;
+}
+
+/* ===== Buttons ===== */
+.btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:12px;
+  min-height:68px;padding:0 28px;border-radius:28px;cursor:pointer;overflow:hidden;
+  font-weight:900;font-size:1.15rem;line-height:1;letter-spacing:.08em;text-transform:uppercase;color:#fff;
+  background:var(--fill);border:1px solid rgba(255,255,255,.1);border-top-color:var(--edge);border-left-color:var(--edge);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25),0 14px 30px -14px rgba(0,0,0,.8);
+  transition:transform .55s var(--spring),box-shadow .5s var(--out),opacity .3s,filter .3s;
+}
+.btn .ic{width:1.45em;height:1.45em}
+.btn:active{
+  transform:scale(.95);transition-duration:.12s;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 0 6px rgba(139,92,246,.2),0 0 46px 6px rgba(139,92,246,.55);
+}
+.btn-block{width:100%}
+.btn-primary{
+  min-height:76px;border-radius:30px;font-size:1.25rem;
+  background:linear-gradient(135deg,rgba(139,92,246,.62),rgba(34,211,238,.4));
+  border-color:rgba(255,255,255,.14);border-top-color:rgba(255,255,255,.4);border-left-color:rgba(255,255,255,.4);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 18px 40px -16px rgba(99,102,241,.8);
+}
+.btn-primary::after{
+  content:"";position:absolute;top:-20%;left:0;width:34%;height:140%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);
+  transform:translateX(-170%) skewX(-22deg);animation:shimmer 3.8s var(--out) infinite;
+}
+@keyframes shimmer{0%{transform:translateX(-170%) skewX(-22deg)}55%,100%{transform:translateX(420%) skewX(-22deg)}}
+.btn-danger{
+  min-height:76px;border-radius:30px;font-size:1.25rem;
+  background:linear-gradient(135deg,rgba(255,77,141,.6),rgba(168,85,247,.42));
+  border-top-color:rgba(255,255,255,.4);border-left-color:rgba(255,255,255,.4);
+}
+.btn-danger:active{box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 0 6px rgba(255,77,141,.2),0 0 46px 6px rgba(255,77,141,.6)}
+.btn:disabled{opacity:.38;filter:saturate(.4);cursor:not-allowed}
+.btn:disabled::after{display:none}
+.icon-btn{
+  width:58px;height:58px;border-radius:22px;display:grid;place-items:center;cursor:pointer;color:var(--text);padding:0;
+  transition:transform .55s var(--spring),box-shadow .4s var(--out);
+}
+.icon-btn:active{transform:scale(.9);transition-duration:.1s;box-shadow:0 0 34px 4px rgba(139,92,246,.5)}
+.ic{width:1.3em;height:1.3em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ===== Header bits ===== */
+.logo{display:flex;align-items:center;gap:12px}
+.logo-ic{width:48px;height:48px;border-radius:17px;display:grid;place-items:center;color:#c4b5fd}
+.logo-ic .ic{width:26px;height:26px}
+.logo h1{margin:0;font-size:1.45rem;font-weight:900;letter-spacing:.14em;background:linear-gradient(90deg,#fff,#c4b5fd 50%,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.chip{padding:10px 14px;border-radius:99px;font-weight:800;font-size:.78rem;letter-spacing:.12em;color:var(--muted);white-space:nowrap}
+.title{margin:0;font-size:1.6rem;font-weight:900;letter-spacing:.16em}
+
+/* ===== Setup ===== */
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px;padding:2px 2px 130px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.sec{margin:12px 6px 0;font-size:.78rem;font-weight:800;letter-spacing:.22em;color:var(--muted)}
+.row{display:flex;align-items:center;gap:14px;padding:12px 12px 12px 14px;min-height:88px;--rgb:167,139,250}
+.row-ic{width:48px;height:48px;border-radius:17px;display:grid;place-items:center;flex:none;color:rgb(var(--rgb));background:rgba(var(--rgb),.14);border:1px solid rgba(var(--rgb),.35)}
+.row-label{flex:1;min-width:0;font-weight:900;font-size:.95rem;letter-spacing:.12em;overflow-wrap:anywhere}
+.ctrl{display:flex;align-items:center;gap:6px}
+.val{min-width:46px;text-align:center;font-size:2rem;font-weight:900;font-variant-numeric:tabular-nums;color:#fff;display:inline-block}
+.val.bump{animation:bump .5s var(--spring)}
+@keyframes bump{from{transform:scale(1.55);color:rgb(var(--rgb))}to{transform:scale(1)}}
+.step{
+  width:60px;height:60px;border-radius:22px;display:grid;place-items:center;cursor:pointer;color:#fff;padding:0;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.28);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.2);
+  transition:transform .5s var(--spring),box-shadow .4s var(--out),opacity .3s;
+}
+.step .ic{width:26px;height:26px;stroke-width:2.6}
+.step:active{transform:scale(.88);transition-duration:.1s;box-shadow:0 0 0 5px rgba(var(--rgb),.18),0 0 30px 4px rgba(var(--rgb),.55)}
+.step[aria-disabled="true"]{opacity:.32}
+.eq{align-self:center;padding:10px 20px;border-radius:99px;font-weight:900;letter-spacing:.14em;font-size:1.05rem;font-variant-numeric:tabular-nums;color:#ddd6fe}
+.pills{display:flex;flex-wrap:wrap;gap:10px;padding:16px}
+.pill{
+  min-height:54px;padding:0 20px;border-radius:20px;cursor:pointer;font-weight:800;font-size:.95rem;color:var(--muted);
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  transition:transform .5s var(--spring),background .35s,color .35s,box-shadow .35s;
+}
+.pill:active{transform:scale(.93);transition-duration:.1s}
+.pill[aria-pressed="true"]{
+  color:#fff;background:linear-gradient(135deg,rgba(139,92,246,.55),rgba(34,211,238,.32));
+  border-color:rgba(255,255,255,.2);border-top-color:rgba(255,255,255,.4);box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 26px -4px rgba(139,92,246,.7);
+}
+.name-list{display:flex;flex-direction:column;gap:10px}
+.name-row{display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;min-height:62px;transition:box-shadow .35s var(--out),border-color .35s;animation:rise .55s var(--spring) both}
+.name-row:focus-within{border-color:rgba(167,139,250,.7);box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 0 4px rgba(139,92,246,.2)}
+.name-row .num{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;font-weight:900;background:rgba(255,255,255,.07);color:var(--muted);flex:none}
+.name-row input{flex:1;min-width:0;height:44px;background:transparent;border:0;outline:0;color:var(--text);font:800 1.05rem var(--font)}
+.name-row input::placeholder{color:rgba(244,245,255,.3)}
+.dock{position:absolute;left:0;right:0;bottom:0;padding:34px 18px calc(var(--safe-b) + 18px);background:linear-gradient(to top,rgba(3,3,6,.94) 45%,transparent)}
+.dock-in{max-width:520px;margin:0 auto}
+
+/* ===== Pass & reveal ===== */
+.avatar{width:116px;height:116px;border-radius:40px;display:grid;place-items:center;font-size:3.2rem;font-weight:900;color:#fff;animation:float 5s ease-in-out infinite;background:linear-gradient(145deg,rgba(139,92,246,.4),rgba(34,211,238,.18))}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+.big-name{margin:0;max-width:100%;font-size:clamp(2.2rem,11vw,3.6rem);font-weight:900;line-height:1.05;overflow-wrap:anywhere}
+.progress{width:min(70%,260px);height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.progress>i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .7s var(--spring)}
+.count{margin:0;font-weight:800;letter-spacing:.2em;color:var(--muted);font-size:.9rem}
+.flip{perspective:1200px;width:min(86vw,360px);height:min(52vh,380px);height:min(52dvh,380px)}
+.flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 1s var(--spring)}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.face{
+  position:absolute;inset:0;border-radius:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;
+  -webkit-backface-visibility:hidden;backface-visibility:hidden;
+  background:linear-gradient(150deg,rgba(255,255,255,.14),rgba(255,255,255,.04)),rgba(18,16,34,.72);
+  border:1px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.4);border-left-color:rgba(255,255,255,.4);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 30px 80px -20px rgba(99,102,241,.6);
+}
+.face.back{transform:rotateY(180deg);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 30px 90px -18px rgba(34,211,238,.55)}
+.face.front .q{font-size:7rem;font-weight:900;line-height:1;background:linear-gradient(135deg,#c4b5fd,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.face strong{display:block;max-width:100%;font-weight:900;line-height:1.1;overflow-wrap:anywhere;hyphens:auto;text-shadow:0 0 40px rgba(167,139,250,.7)}
+
+/* ===== Round ===== */
+.round-title{display:flex;align-items:baseline;gap:10px;font-weight:900;letter-spacing:.2em}
+.round-title span{color:var(--muted);font-size:.85rem}
+.round-title b{font-size:2.2rem;line-height:1}
+.plist{flex:1;min-height:0;overflow-y:auto;list-style:none;margin:0;padding:4px 2px 12px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+.plist::-webkit-scrollbar{display:none}
+.plist-label{margin:0 6px 10px}
+.prow{
+  display:flex;align-items:center;gap:14px;width:100%;min-height:68px;padding:10px 16px 10px 10px;
+  color:inherit;font:inherit;text-align:left;
+  animation:rise .6s var(--spring) both;animation-delay:calc(var(--i,0) * 40ms);
+  transition:transform .5s var(--spring),box-shadow .4s var(--out);
+}
+button.prow{cursor:pointer}
+button.prow:active{transform:scale(.96);transition-duration:.1s;box-shadow:0 0 30px 2px rgba(139,92,246,.45)}
+.prow .n{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;font-weight:900;flex:none;background:rgba(255,255,255,.08)}
+.prow .nm{flex:1;min-width:0;font-weight:800;font-size:1.15rem;overflow-wrap:anywhere}
+.prow .ic{color:var(--muted)}
+.prow.dead{opacity:.55}
+.prow.dead .nm{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:rgba(255,255,255,.55)}
+.tag{padding:6px 10px;border-radius:99px;font-size:.7rem;font-weight:900;letter-spacing:.14em;color:#67e8f9;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.4)}
+.role{padding:6px 12px;border-radius:99px;font-weight:900;font-size:.7rem;letter-spacing:.12em;white-space:nowrap;color:rgb(var(--rc));background:rgba(var(--rc),.14);border:1px solid rgba(var(--rc),.5)}
+.r-civ{--rc:94,234,212}.r-und{--rc:255,77,141}.r-white{--rc:243,244,255}
+.foot{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;padding-top:10px}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:none}}
+
+/* ===== Vote grid ===== */
+.vgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start}
+.vgrid.scroll-y{flex:1;min-height:0;overflow-y:auto;padding:2px 2px 12px;scrollbar-width:none}
+.vbtn{
+  min-height:78px;padding:12px;border-radius:26px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;
+  font-weight:900;font-size:1.1rem;color:var(--text);overflow-wrap:anywhere;
+  animation:rise .55s var(--spring) both;animation-delay:calc(var(--i,0) * 35ms);
+  transition:transform .5s var(--spring),background .3s,box-shadow .35s var(--out),border-color .3s;
+}
+.vbtn:active{transform:scale(.93);transition-duration:.1s}
+.vbtn[aria-pressed="true"]{
+  transform:scale(1.04);border-color:rgba(255,77,141,.85);
+  background:linear-gradient(135deg,rgba(255,77,141,.45),rgba(139,92,246,.3));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 0 40px rgba(255,77,141,.4);
+}
+
+/* ===== Elimination ===== */
+#s-elim{--rc:243,244,255}
+.elim-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.elim-stage .who{margin:0;font-size:clamp(2rem,10vw,3.2rem);font-weight:900;line-height:1.05;overflow-wrap:anywhere;opacity:0}
+.elim-stage .was{margin:0;font-size:1rem;font-weight:800;letter-spacing:.3em;color:var(--muted);opacity:0}
+.role-orb{position:relative;display:grid;place-items:center;width:150px;height:150px;border-radius:50%;margin:10px 0;color:rgb(var(--rc));opacity:0;background:radial-gradient(circle,rgba(var(--rc),.25),rgba(var(--rc),.04) 70%);border:1px solid rgba(var(--rc),.5);box-shadow:0 0 70px rgba(var(--rc),.5)}
+.role-orb .ic{width:70px;height:70px;stroke-width:1.7}
+.ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(var(--rc),.7);opacity:0;pointer-events:none}
+.role-big{margin:0;font-size:clamp(2.4rem,13vw,4.2rem);font-weight:900;letter-spacing:.06em;line-height:1;color:rgb(var(--rc));text-shadow:0 0 50px rgba(var(--rc),.75);opacity:0}
+#s-elim.play .who{animation:rise .7s var(--spring) .35s both}
+#s-elim.play .was{animation:fadeUp .6s var(--out) .95s both}
+#s-elim.play .role-orb{animation:slam 1s var(--spring) 1.4s both,blurIn .5s var(--out) 1.4s both}
+#s-elim.play .role-big{animation:slam 1s var(--spring) 1.55s both,blurIn .5s var(--out) 1.55s both}
+#s-elim.play .ring{animation:ring 1.5s var(--out) 1.45s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slam{from{opacity:0;transform:scale(2.8) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes blurIn{from{filter:blur(16px)}to{filter:blur(0)}}
+@keyframes ring{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}
+
+/* ===== Victory ===== */
+#s-victory{--w1:94,234,212;--w2:34,211,238}
+#s-victory[data-winner="inf"]{--w1:255,77,141;--w2:168,85,247}
+#s-victory[data-winner="white"]{--w1:243,244,255;--w2:139,92,246}
+.vhead{text-align:center;padding:6px 0 14px}
+.vhead h2{margin:8px 0 6px;font-size:clamp(2rem,10vw,3rem);font-weight:900;line-height:1.05;letter-spacing:.04em;background:linear-gradient(90deg,rgb(var(--w1)),rgb(var(--w2)));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(var(--w1),.45))}
+.vhead .ic{width:48px;height:48px;color:rgb(var(--w1));filter:drop-shadow(0 0 16px rgba(var(--w1),.7))}
+.words{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wtile{padding:16px 12px;text-align:center;display:flex;flex-direction:column;gap:8px;min-width:0}
+.wtile small{font-size:.68rem;font-weight:800;letter-spacing:.16em;color:var(--muted)}
+.wtile strong{font-size:1.2rem;font-weight:900;overflow-wrap:anywhere;hyphens:auto}
+.wtile.civ strong{color:rgb(94,234,212)}
+.wtile.und strong{color:rgb(255,77,141)}
+.prow.win{border-color:rgba(var(--w1),.6);box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 30px -6px rgba(var(--w1),.55)}
+.prow.win .ic{color:rgb(var(--w1))}
+.out-note{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--muted)}
+.confetti{position:fixed;left:50%;top:32%;width:10px;height:14px;border-radius:3px;z-index:60;pointer-events:none;background:var(--c);animation:confetti 1.8s var(--out) forwards}
+@keyframes confetti{
+  0%{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(.4)}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1)}
+}
+
+/* ===== Modals ===== */
+.modal{
+  position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;
+  background:rgba(3,3,6,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  opacity:0;visibility:hidden;transition:opacity .35s var(--out),visibility 0s .35s;
+}
+.modal.open{opacity:1;visibility:visible;transition:opacity .35s var(--out)}
+.sheet{width:min(100%,440px);max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;text-align:center;transform:translateY(40px) scale(.9);transition:transform .6s var(--spring)}
+.sheet.glass{background:linear-gradient(145deg,rgba(52,44,92,.8),rgba(18,16,36,.86))}
+.modal.open .sheet{transform:none}
+.sheet h3{margin:0;font-size:clamp(1.8rem,8vw,2.4rem);font-weight:900;line-height:1.1;overflow-wrap:anywhere}
+.sheet .view{display:flex;flex-direction:column;gap:16px}
+.word-card{padding:28px 18px;border-radius:26px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);min-height:130px;display:grid;place-items:center}
+.word-card strong{font-weight:900;line-height:1.1;overflow-wrap:anywhere;hyphens:auto;text-shadow:0 0 30px rgba(167,139,250,.6)}
+.input{width:100%;min-height:68px;padding:0 20px;border-radius:24px;text-align:center;color:var(--text);font:800 1.3rem var(--font);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-top-color:rgba(255,255,255,.3);outline:0;transition:box-shadow .3s,border-color .3s}
+.input:focus{border-color:rgba(167,139,250,.8);box-shadow:0 0 0 4px rgba(139,92,246,.25)}
+.feedback{min-height:1.6em;font-weight:900;letter-spacing:.2em;font-size:1.1rem}
+.feedback.ok{color:rgb(94,234,212)}
+.feedback.bad{color:rgb(255,77,141)}
+.toast{
+  position:fixed;left:50%;top:calc(var(--safe-t) + 14px);z-index:80;transform:translate(-50%,-140%);
+  padding:14px 22px;border-radius:99px;font-weight:800;font-size:.9rem;letter-spacing:.06em;text-align:center;max-width:calc(100vw - 32px);
+  background:linear-gradient(145deg,rgba(52,44,92,.88),rgba(18,16,36,.92));
+  opacity:0;pointer-events:none;transition:transform .6s var(--spring),opacity .3s;
+}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.shake{animation:shake .45s var(--out)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+
+@media (max-width:360px){
+  .row{gap:10px;padding:10px}
+  .step{width:54px;height:54px}
+  .val{min-width:38px;font-size:1.7rem}
+  .row-ic{display:none}
+}
+@media (min-width:700px){
+  .vgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.4 6.5A16.6 16.6 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4.4-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></symbol>
+    <symbol id="i-vote" viewBox="0 0 24 24"><path d="M4 13h16v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M8 13V4.5h8V13"/><path d="M10.5 8.5h3"/></symbol>
+    <symbol id="i-spy" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.8a3.4 3.4 0 0 1 0 6.4M18 14.8c1.9.7 3.2 2.4 3.5 5.2"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></symbol>
+    <symbol id="i-mask" viewBox="0 0 24 24"><path d="M3 8c3-2 6-2.5 9-2.5s6 .5 9 2.5c0 6-3.5 11-9 11S3 14 3 8z"/><path d="M7.5 12c1-.9 2.3-.9 3.3 0M13.2 12c1-.9 2.3-.9 3.3 0"/></symbol>
+    <symbol id="i-ghost" viewBox="0 0 24 24"><path d="M5 20V11a7 7 0 0 1 14 0v9l-3-2-2 2-2-2-2 2-2-2z"/><path d="M9.5 11h.01M14.5 11h.01"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
+  </defs>
+</svg>
+
+<div class="aurora" aria-hidden="true">
+  <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
+  <div class="vignette"></div>
+</div>
+
+<noscript><p style="position:relative;z-index:5;padding:24px">Zet JavaScript aan om te spelen.</p></noscript>
+
+<main id="app">
+
+  <!-- SETUP -->
+  <section class="screen active" id="s-setup" aria-label="Instellingen">
+    <div class="wrap">
+      <header class="top">
+        <div class="logo">
+          <span class="logo-ic glass" aria-hidden="true"><svg class="ic"><use href="#i-mask"/></svg></span>
+          <h1>UNDERCOVER</h1>
+        </div>
+        <span class="chip glass-lite" id="poolChip" aria-label="Beschikbare woordparen"></span>
+      </header>
+      <div class="scroll" id="setupScroll">
+        <p class="sec">SPELERS</p>
+        <div id="rowTotal"></div>
+        <p class="sec">ROLLEN</p>
+        <div id="rowRoles" style="display:flex;flex-direction:column;gap:12px"></div>
+        <div class="eq glass-lite" id="eq" aria-live="polite"></div>
+        <p class="sec">CATEGORIEËN</p>
+        <div class="glass"><div class="pills" id="pills" role="group" aria-label="Categorieën"></div></div>
+        <p class="sec">NAMEN</p>
+        <div class="name-list" id="nameList"></div>
+      </div>
+    </div>
+    <div class="dock"><div class="dock-in">
+      <button type="button" class="btn btn-primary btn-block" id="btnStart"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>START SPEL</button>
+    </div></div>
+  </section>
+
+  <!-- PASS -->
+  <section class="screen" id="s-pass" aria-label="Doorgeven">
+    <div class="wrap">
+      <div class="center">
+        <p class="eyebrow">GEEF AAN</p>
+        <div class="avatar glass" id="passAvatar" aria-hidden="true"></div>
+        <h2 class="big-name" id="passName"></h2>
+        <div class="progress" id="passProgress" role="progressbar" aria-label="Voortgang" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="passBar"></i></div>
+        <p class="count" id="passCount"></p>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btnSee"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>BEKIJK WOORD</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVEAL -->
+  <section class="screen" id="s-reveal" aria-label="Geheim woord">
+    <div class="wrap">
+      <div class="center">
+        <p class="eyebrow" id="revealWho"></p>
+        <div class="flip" id="flip">
+          <div class="flip-inner">
+            <div class="face front" aria-hidden="true"><span class="q">?</span></div>
+            <div class="face back">
+              <span class="eyebrow" id="revealLabel"></span>
+              <strong id="revealWord" aria-live="polite"></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btnHide"><svg class="ic" aria-hidden="true"><use href="#i-eye-off"/></svg><span id="btnHideLabel">VERBERG & VOLGENDE</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROUND -->
+  <section class="screen" id="s-round" aria-label="Ronde">
+    <div class="wrap">
+      <header class="top">
+        <button type="button" class="icon-btn glass" id="btnStop" aria-label="Stop spel"><svg class="ic"><use href="#i-x"/></svg></button>
+        <div class="round-title"><span>RONDE</span><b id="roundNum">1</b></div>
+        <span class="chip glass-lite" id="aliveChip"></span>
+      </header>
+      <p class="eyebrow plist-label">SPREEKVOLGORDE</p>
+      <ol class="plist" id="orderList"></ol>
+      <div class="foot">
+        <button type="button" class="btn" id="btnPeek"><svg class="ic" aria-hidden="true"><use href="#i-spy"/></svg>SPIEK</button>
+        <button type="button" class="btn btn-primary" id="btnVote"><svg class="ic" aria-hidden="true"><use href="#i-vote"/></svg>STEM</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOTE -->
+  <section class="screen" id="s-vote" aria-label="Stemmen">
+    <div class="wrap">
+      <header class="top">
+        <button type="button" class="icon-btn glass" id="voteBack" aria-label="Terug"><svg class="ic"><use href="#i-x"/></svg></button>
+        <h2 class="title">STEM</h2>
+        <span style="width:58px" aria-hidden="true"></span>
+      </header>
+      <div class="vgrid scroll-y" id="voteGrid" role="group" aria-label="Kies een speler"></div>
+      <div class="actions">
+        <button type="button" class="btn btn-danger" id="voteConfirm" disabled><svg class="ic" aria-hidden="true"><use href="#i-vote"/></svg>ELIMINEER</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ELIMINATION -->
+  <section class="screen" id="s-elim" aria-label="Eliminatie">
+    <div class="wrap">
+      <div class="center" aria-live="polite">
+        <div class="elim-stage">
+          <h2 class="who" id="elimName"></h2>
+          <p class="was">WAS EEN</p>
+          <div class="role-orb" id="elimOrb" aria-hidden="true"><span class="ring"></span></div>
+          <p class="role-big" id="elimRole"></p>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="elimNext" disabled><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg>DOOR</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VICTORY -->
+  <section class="screen" id="s-victory" aria-label="Einde">
+    <div class="wrap">
+      <div class="vhead">
+        <svg class="ic" aria-hidden="true"><use href="#i-crown"/></svg>
+        <h2 id="vTitle"></h2>
+        <p class="eyebrow" id="vSub"></p>
+      </div>
+      <div class="words">
+        <div class="wtile glass civ"><small>BURGER WOORD</small><strong id="vCiv"></strong></div>
+        <div class="wtile glass und"><small>UNDERCOVER WOORD</small><strong id="vUnd"></strong></div>
+      </div>
+      <ul class="plist" id="vList" style="margin-top:12px"></ul>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btnAgain"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>NIEUW POTJE</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- PEEK MODAL -->
+<div class="modal" id="m-peek" role="dialog" aria-modal="true" aria-labelledby="peekTitle" aria-hidden="true" inert>
+  <div class="sheet glass">
+    <div class="view" id="peekPick">
+      <h3 id="peekTitle">WIE BEN JIJ?</h3>
+      <div class="vgrid" id="peekGrid"></div>
+      <button type="button" class="btn" data-close="m-peek">ANNULEER</button>
+    </div>
+    <div class="view" id="peekGuard" hidden>
+      <p class="eyebrow">ALLEEN</p>
+      <h3 id="peekName"></h3>
+      <button type="button" class="btn btn-primary" id="peekSee"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>BEKIJK WOORD</button>
+      <button type="button" class="btn" id="peekCancel">TERUG</button>
+    </div>
+    <div class="view" id="peekShow" hidden>
+      <p class="eyebrow" id="peekLabel"></p>
+      <div class="word-card"><strong id="peekWord"></strong></div>
+      <button type="button" class="btn btn-primary" id="peekHide"><svg class="ic" aria-hidden="true"><use href="#i-eye-off"/></svg>VERBERG</button>
+    </div>
+  </div>
+</div>
+
+<!-- MR. WHITE GUESS MODAL -->
+<div class="modal" id="m-guess" role="dialog" aria-modal="true" aria-labelledby="guessTitle" aria-hidden="true" inert>
+  <form class="sheet glass" id="guessForm" autocomplete="off" novalidate>
+    <p class="eyebrow">LAATSTE KANS</p>
+    <h3 id="guessTitle">MR. WHITE</h3>
+    <p class="eyebrow" id="guessWho"></p>
+    <label class="sr-only" for="guessInput">Burgerwoord</label>
+    <input class="input" id="guessInput" type="text" maxlength="40" placeholder="Burgerwoord…" enterkeyhint="go" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="feedback" id="guessFb" role="status" aria-live="polite"></div>
+    <button type="submit" class="btn btn-primary" id="guessBtn"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>RADEN</button>
+  </form>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal" id="m-confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true" inert>
+  <div class="sheet glass">
+    <h3 id="confirmTitle">STOPPEN?</h3>
+    <button type="button" class="btn btn-primary" data-close="m-confirm">DOORGAAN</button>
+    <button type="button" class="btn btn-danger" id="confirmYes" style="min-height:68px">STOP SPEL</button>
+  </div>
+</div>
+
+<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     DATA — 5 categorieën × 44 woordparen = 220 duo's (volledig uitgeschreven)
+     ===================================================================== */
+  var CATEGORIES = [
+    { id: 'situaties', name: 'Situaties & Plekken', pairs: [
+      'Eerste date|Sollicitatiegesprek', 'Sauna|Sportschool', 'Begrafenis|Bruiloft', 'Biechtstoel|Verhoorkamer',
+      'Festival|Camping', 'Wachtkamer|Vertrekhal', 'Bibliotheek|Museum', 'Kermis|Pretpark',
+      'Bioscoop|Theater', 'Strandtent|Stadsterras', 'Ziekenhuis|Tandartspraktijk', 'Hotellobby|Luchthaven',
+      'Schoolplein|Kinderdagverblijf', 'Examenzaal|Rechtbank', 'Dierentuin|Kinderboerderij', 'Escaperoom|Spookhuis',
+      'Kampvuur|Barbecue', 'Reünie|Verjaardagsfeestje', 'Zwembad|Wellnesscentrum', 'Kantoortuin|Klaslokaal',
+      'Stadion|Concertzaal', 'Bingoavond|Kaartavond', 'Vliegtuig|Trein', 'Veerboot|Cruiseschip',
+      'Vakantiehuisje|Hotelkamer', 'Logeerpartij|Slaapfeestje', 'Pashokje|Kapperszaak', 'Kringloopwinkel|Antiekmarkt',
+      'Verhuizing|Emigratie', 'Gevangenis|Kostschool', 'Bunker|Kelder', 'Dakterras|Balkon',
+      'Tuinfeest|Buurtbarbecue', 'Speeddate|Netwerkborrel', 'Eerste schooldag|Eerste werkdag', 'Rondleiding|Excursie',
+      'Skipiste|Schaatsbaan', 'Casino|Bingohal', 'Observatorium|Planetarium', 'Rijschool|Vliegschool',
+      'Spoedeisende hulp|Huisartsenpost', 'Zolder|Garage', 'Parkeergarage|Tunnel', 'Werkoverleg|Familiediner'
+    ]},
+    { id: 'psycho', name: 'Psychologisch & Abstract', pairs: [
+      'Jaloers|Onzeker', 'Spijt|Schuldgevoel', 'Nostalgie|Heimwee', 'Roddel|Geheim',
+      'Karma|Wraak', 'Arrogant|Zelfverzekerd', 'Verlegen|Introvert', 'Koppig|Vastberaden',
+      'Verdriet|Rouw', 'Angst|Stress', 'Eenzaamheid|Verveling', 'Trots|Hoogmoed',
+      'Moed|Roekeloosheid', 'Geluk|Toeval', 'Hoop|Optimisme', 'Wantrouwen|Paranoia',
+      'Vriendschap|Kameraadschap', 'Liefde|Verliefdheid', 'Gewoonte|Verslaving', 'Ambitie|Hebzucht',
+      'Nieuwsgierig|Bemoeiziek', 'Zuinig|Gierig', 'Eerlijk|Tactloos', 'Beleefd|Onderdanig',
+      'Vergeving|Vergeten', 'Medelijden|Medeleven', 'Fantasie|Leugen', 'Herinnering|Droom',
+      'Intuïtie|Voorgevoel', 'Dankbaarheid|Opluchting', 'Schaamte|Gêne', 'Wijsheid|Slimheid',
+      'Verzet|Rebellie', 'Gehoorzaam|Volgzaam', 'Zelfspot|Zelfkritiek', 'Dromer|Idealist',
+      'Perfectionisme|Controledrang', 'Woede|Irritatie', 'Opwinding|Zenuwen', 'Rust|Stilte',
+      'Gemis|Leegte', 'Respect|Bewondering', 'Macht|Invloed', 'Vrijheid|Onafhankelijkheid'
+    ]},
+    { id: 'objecten', name: 'Subtiele Objecten', pairs: [
+      'Zonnebrandcrème|Bodylotion', 'Tatoeage|Litteken', 'Paspoort|Rijbewijs', 'Wekker|Timer',
+      'Parfum|Deodorant', 'Kompas|GPS', 'Zaklamp|Kaars', 'Rugzak|Weekendtas',
+      'Pen|Potlood', 'Horloge|Smartwatch', 'Bril|Contactlenzen', 'Paraplu|Regenjas',
+      'Sjaal|Das', 'Handschoenen|Wanten', 'Sleutelbos|Pasje', 'Portemonnee|Geldclip',
+      'Spiegel|Raam', 'Kussen|Knuffel', 'Deken|Slaapzak', 'Matras|Luchtbed',
+      'Fotoalbum|Dagboek', 'Kaart|Brief', 'Cadeaubon|Waardebon', 'Ansichtkaart|Wenskaart',
+      'Koptelefoon|Oordopjes', 'Radio|Podcast', 'Boek|E-reader', 'Laptop|Tablet',
+      'Powerbank|Oplader', 'Afstandsbediening|Joystick', 'Ring|Armband', 'Ketting|Hanger',
+      'Kam|Borstel', 'Föhn|Krultang', 'Schaar|Mes', 'Hamer|Boormachine',
+      'Ladder|Trap', 'Zaag|Bijl', 'Thermosfles|Waterfles', 'Kluisje|Brievenbus',
+      'Zakmes|Nagelknipper', 'Sticker|Button', 'Camera|Verrekijker', 'Fluit|Trompet'
+    ]},
+    { id: 'cultuur', name: 'Eten, Sfeer & Cultuur', pairs: [
+      'Champagne|Prosecco', 'Frituur|Kebabzaak', 'Bruine kroeg|Nachtclub', 'Foodtruck|Marktkraam',
+      'Tapas|Borrelplank', 'Sushi|Poké bowl', 'Pizza|Flammkuchen', 'Pannenkoek|Wafel',
+      'Stamppot|Hutspot', 'Bitterballen|Kroketten', 'Haring|Zalm', 'Appeltaart|Vlaai',
+      'Koffie|Espresso', 'Thee|Kruidenthee', 'Bier|Cider', 'Whisky|Cognac',
+      'Rode wijn|Port', 'Cocktail|Shot', 'Ontbijt|Brunch', 'Lunch|High tea',
+      'Barbecue|Gourmetten', 'Fondue|Raclette', 'Soep|Bouillon', 'Salade|Rauwkost',
+      'Chocola|Cacao', 'Ijs|Sorbet', 'Slagroom|Kwark', 'Honing|Stroop',
+      'Carnaval|Oktoberfest', 'Koningsdag|Sinterklaas', 'Oud en nieuw|Verjaardag', 'Pride|Demonstratie',
+      'Opera|Musical', 'Stand-up|Cabaret', 'Jazz|Blues', 'Techno|House',
+      'Graffiti|Muurschildering', 'Poëzie|Songtekst', 'Stripboek|Roman', 'Karaoke|Playback',
+      'Rijsttafel|Buffet', 'Kantine|Restaurant', 'Cafetaria|Snackbar', 'Broodje kroket|Tosti'
+    ]},
+    { id: 'dagelijks', name: 'Dagelijks Leven & Acties', pairs: [
+      'Spijbelen|Ziek melden', 'Ghosten|Blokkeren', 'Stalken|Lurken', 'Powernap|Meditatie',
+      'Schoonmaken|Opruimen', 'Winkelen|Rondneuzen', 'Sporten|Wandelen', 'Koken|Bakken',
+      'Fietsen|Hardlopen', 'Zwemmen|Snorkelen', 'Dansen|Aerobics', 'Zingen|Neuriën',
+      'Fluisteren|Mompelen', 'Roepen|Schreeuwen', 'Lachen|Giechelen', 'Huilen|Snikken',
+      'Bellen|Appen', 'Mailen|Posten', 'Scrollen|Zappen', 'Gamen|Gokken',
+      'Daten|Flirten', 'Zoenen|Knuffelen', 'Ruziën|Discussiëren', 'Klagen|Zeuren',
+      'Sparen|Beleggen', 'Lenen|Huren', 'Verkopen|Ruilen', 'Onderhandelen|Afdingen',
+      'Verslapen|Uitslapen', 'Dutten|Slapen', 'Dromen|Dagdromen', 'Snurken|Slaapwandelen',
+      'Verhuizen|Vertrekken', 'Inpakken|Uitpakken', 'Wachten|Treuzelen', 'Haasten|Rennen',
+      'Solliciteren|Stage lopen', 'Ontslag nemen|Ontslagen worden', 'Vergaderen|Overleggen', 'Promotie|Salarisverhoging',
+      'Afspreken|Uitnodigen', 'Boodschappen doen|Bestellen', 'Afwassen|Afdrogen', 'Tanden poetsen|Mondspoelen'
+    ]}
+  ];
+
+  var ALL_PAIRS = [];
+  CATEGORIES.forEach(function (cat) {
+    cat.pairs.forEach(function (raw) {
+      var parts = raw.split('|');
+      ALL_PAIRS.push({ id: cat.id + ':' + raw, cat: cat.id, a: parts[0], b: parts[1] });
+    });
+  });
+  // Integriteitscheck: geen dubbele id's, elk paar heeft twee verschillende woorden.
+  (function () {
+    var seen = {};
+    ALL_PAIRS.forEach(function (p) {
+      if (seen[p.id] || !p.a || !p.b || p.a === p.b) console.warn('Ongeldig woordpaar:', p.id);
+      seen[p.id] = true;
+    });
+    console.info('Woordparen geladen:', ALL_PAIRS.length);
+  })();
+
+  /* =====================================================================
+     CONSTANTS & HELPERS
+     ===================================================================== */
+  var MIN = 3, MAX = 20, NAME_MAX = 14;
+  var LS_KEY = 'undercover-liquid-glass:v1';
+  var NS = 'http://www.w3.org/2000/svg';
+  var ROLE_LABEL = { civ: 'BURGER', und: 'UNDERCOVER', white: 'MR. WHITE' };
+  var ROLE_CLASS = { civ: 'r-civ', und: 'r-und', white: 'r-white' };
+  var ROLE_ICON = { civ: 'user', und: 'mask', white: 'ghost' };
+  var ROLE_RGB = { civ: '94,234,212', und: '255,77,141', white: '243,244,255' };
+  var DEFAULT_SETUP = { total: 6, und: 1, white: 1 };
+  var MSG_MAJORITY = 'Minstens evenveel burgers als infiltranten';
+  var MSG_MIN_INF = 'Minstens 1 infiltrant nodig';
+
+  var ROWS = [
+    { key: 'total', label: 'SPELERS', icon: 'users', rgb: '167,139,250', minus: 'Minder spelers', plus: 'Meer spelers' },
+    { key: 'civ', label: 'BURGERS', icon: 'user', rgb: '94,234,212', minus: 'Minder burgers', plus: 'Meer burgers' },
+    { key: 'und', label: 'UNDERCOVERS', icon: 'mask', rgb: '255,77,141', minus: 'Minder undercovers', plus: 'Meer undercovers' },
+    { key: 'white', label: 'MR. WHITE', icon: 'ghost', rgb: '243,244,255', minus: 'Minder Mr. White', plus: 'Meer Mr. White' }
+  ];
+
+  var SCREEN_FOCUS = {
+    setup: '#btnStart', pass: '#btnSee', reveal: '#btnHide', round: '#btnVote',
+    vote: '#voteBack', elim: '#elimNext', victory: '#btnAgain'
+  };
+
+  var state = { setup: null, names: [], used: [] };
+  var game = null;
+  var current = 'setup';
+  var refs = {};
+  var pillRefs = {};
+  var flipTimer = null, elimTimer = null, toastTimer = null, guessTimer = null;
+  var guessLocked = false;
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    var p = props || {};
+    Object.keys(p).forEach(function (k) {
+      var v = p[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'style') el.style.cssText = v;
+      else if (k.indexOf('on') === 0) el.addEventListener(k.slice(2).toLowerCase(), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var kids = [].concat(arguments[i]);
+      kids.forEach(function (c) {
+        if (c === null || c === undefined || c === false) return;
+        el.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+      });
+    }
+    return el;
+  }
+
+  function icon(name) {
+    var s = document.createElementNS(NS, 'svg');
+    s.setAttribute('class', 'ic');
+    s.setAttribute('aria-hidden', 'true');
+    var u = document.createElementNS(NS, 'use');
+    u.setAttribute('href', '#i-' + name);
+    s.appendChild(u);
+    return s;
+  }
+
+  function rand(n) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var buf = new Uint32Array(1);
+      var limit = Math.floor(0x100000000 / n) * n;
+      var x;
+      do { window.crypto.getRandomValues(buf); x = buf[0]; } while (x >= limit);
+      return x % n;
+    }
+    return Math.floor(Math.random() * n);
+  }
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = rand(i + 1);
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function toMap(arr) {
+    var m = Object.create(null);
+    arr.forEach(function (x) { m[x] = true; });
+    return m;
+  }
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet ondersteund */ } }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function initial(name) { return (name.trim().charAt(0) || '?').toUpperCase(); }
+  function norm(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  function restart(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  function fitWord(el, text, maxSize, availMax) {
+    el.textContent = text;
+    var lens = text.split(/[\s-]+/).map(function (w) { return w.length; });
+    var longest = Math.max.apply(null, lens.concat([4]));
+    var avail = Math.min(window.innerWidth * 0.72, availMax || 300);
+    var size = Math.floor(avail / (longest * 0.62));
+    el.style.fontSize = clamp(size, 22, maxSize || 56) + 'px';
+  }
+
+  /* =====================================================================
+     PERSISTENCE
+     ===================================================================== */
+  function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? Math.round(v) : d; }
+
+  // Houdt de som Burgers + Undercovers + Mr. White === Totaal geldig,
+  // met minstens 1 infiltrant en Burgers >= infiltranten.
+  function normalize(t) {
+    var total = clamp(num(t.total, DEFAULT_SETUP.total), MIN, MAX);
+    var und = Math.max(0, num(t.und, DEFAULT_SETUP.und));
+    var white = Math.max(0, num(t.white, DEFAULT_SETUP.white));
+    var maxInf = Math.floor(total / 2);
+    if (und + white < 1) und = 1;
+    while (und + white > maxInf) {
+      if (white > 0 && und + white > 1) white--;
+      else if (und > 1) und--;
+      else break;
+    }
+    return {
+      total: total, civ: total - und - white, und: und, white: white,
+      cats: t.cats || (state.setup && state.setup.cats) || {}
+    };
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({ setup: state.setup, names: state.names, used: state.used }));
+    } catch (e) { /* privé modus of vol: negeren */ }
+  }
+
+  function loadState() {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) { saved = null; }
+    if (!saved || typeof saved !== 'object') saved = {};
+    var s = (saved.setup && typeof saved.setup === 'object') ? saved.setup : {};
+    var savedCats = (s.cats && typeof s.cats === 'object') ? s.cats : {};
+    var cats = {}, anyOn = false;
+    CATEGORIES.forEach(function (c) {
+      cats[c.id] = savedCats[c.id] !== false;
+      if (cats[c.id]) anyOn = true;
+    });
+    if (!anyOn) CATEGORIES.forEach(function (c) { cats[c.id] = true; });
+
+    state.setup = normalize({ total: num(s.total, DEFAULT_SETUP.total), und: num(s.und, DEFAULT_SETUP.und), white: num(s.white, DEFAULT_SETUP.white), cats: cats });
+
+    state.names = [];
+    if (Array.isArray(saved.names)) {
+      saved.names.slice(0, MAX).forEach(function (n) { state.names.push(String(n == null ? '' : n).slice(0, NAME_MAX)); });
+    }
+    while (state.names.length < MAX) state.names.push('');
+
+    var valid = toMap(ALL_PAIRS.map(function (p) { return p.id; }));
+    state.used = Array.isArray(saved.used) ? saved.used.filter(function (id) { return valid[id]; }) : [];
+  }
+
+  /* =====================================================================
+     SETUP SCREEN
+     ===================================================================== */
+  function plan(key, dir) {
+    var s = state.setup, inf = s.und + s.white;
+    var t = { total: s.total, und: s.und, white: s.white };
+    if (key === 'total') {
+      if (dir > 0 && s.total >= MAX) return { err: 'Maximaal ' + MAX + ' spelers' };
+      if (dir < 0 && s.total <= MIN) return { err: 'Minimaal ' + MIN + ' spelers' };
+      t.total += dir;
+    } else if (key === 'civ') {
+      if (dir > 0) {
+        if (inf <= 1) return { err: MSG_MIN_INF };
+        if (s.white > 0) t.white--; else t.und--;
+      } else {
+        if (s.civ - 1 < inf + 1) return { err: MSG_MAJORITY };
+        t.und++;
+      }
+    } else {
+      if (dir > 0) {
+        if (s.civ - 1 < inf + 1) return { err: MSG_MAJORITY };
+        t[key]++;
+      } else {
+        if (s[key] <= 0) return { err: 'Al op nul' };
+        if (inf <= 1) return { err: MSG_MIN_INF };
+        t[key]--;
+      }
+    }
+    return { next: normalize(t) };
+  }
+
+  function onStep(key, dir) {
+    var res = plan(key, dir);
+    if (res.err) {
+      toast(res.err);
+      buzz(25);
+      restart(refs[key].row, 'shake');
+      return;
+    }
+    state.setup = res.next;
+    save();
+    renderSetup();
+    buzz(8);
+  }
+
+  function buildRow(def) {
+    var minus = h('button', { type: 'button', class: 'step', 'aria-label': def.minus, onclick: function () { onStep(def.key, -1); } }, icon('minus'));
+    var plus = h('button', { type: 'button', class: 'step', 'aria-label': def.plus, onclick: function () { onStep(def.key, 1); } }, icon('plus'));
+    var val = h('span', { class: 'val', 'aria-live': 'polite' }, '');
+    var row = h('div', { class: 'row glass', style: '--rgb:' + def.rgb },
+      h('span', { class: 'row-ic', 'aria-hidden': 'true' }, icon(def.icon)),
+      h('span', { class: 'row-label' }, def.label),
+      h('div', { class: 'ctrl' }, minus, val, plus)
+    );
+    refs[def.key] = { row: row, minus: minus, plus: plus, val: val };
+    return row;
+  }
+
+  function buildSetup() {
+    $('#rowTotal').appendChild(buildRow(ROWS[0]));
+    for (var i = 1; i < ROWS.length; i++) $('#rowRoles').appendChild(buildRow(ROWS[i]));
+
+    var box = $('#pills');
+    CATEGORIES.forEach(function (cat) {
+      var b = h('button', { type: 'button', class: 'pill', 'aria-pressed': 'true', onclick: function () { toggleCat(cat.id); } }, cat.name);
+      pillRefs[cat.id] = b;
+      box.appendChild(b);
+    });
+  }
+
+  function enabledCount() {
+    var n = 0;
+    CATEGORIES.forEach(function (c) { if (state.setup.cats[c.id]) n++; });
+    return n;
+  }
+
+  function toggleCat(id) {
+    var cats = state.setup.cats;
+    if (cats[id] && enabledCount() === 1) { toast('Minstens 1 categorie'); buzz(25); return; }
+    cats[id] = !cats[id];
+    save();
+    renderSetup();
+    buzz(8);
+  }
+
+  function enabledPairs() {
+    return ALL_PAIRS.filter(function (p) { return state.setup.cats[p.cat]; });
+  }
+
+  function freshCount() {
+    var used = toMap(state.used);
+    return enabledPairs().filter(function (p) { return !used[p.id]; }).length;
+  }
+
+  function nameRow(i) {
+    var input = h('input', {
+      type: 'text', maxlength: NAME_MAX, placeholder: 'Speler ' + (i + 1), 'aria-label': 'Naam speler ' + (i + 1),
+      autocomplete: 'off', autocapitalize: 'words', enterkeyhint: 'next', spellcheck: 'false',
+      oninput: function (e) { state.names[i] = e.target.value; save(); },
+      onkeydown: function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        var next = $('#nameList').children[i + 1];
+        if (next) next.querySelector('input').focus(); else e.target.blur();
+      }
+    });
+    input.value = state.names[i] || '';
+    return h('div', { class: 'name-row glass-lite' }, h('span', { class: 'num' }, i + 1), input);
+  }
+
+  function syncNames() {
+    var list = $('#nameList'), total = state.setup.total;
+    while (list.children.length > total) list.removeChild(list.lastChild);
+    while (list.children.length < total) list.appendChild(nameRow(list.children.length));
+  }
+
+  function renderSetup() {
+    var s = state.setup;
+    ROWS.forEach(function (def) {
+      var r = refs[def.key], v = String(s[def.key]);
+      if (r.val.textContent !== v) {
+        r.val.textContent = v;
+        restart(r.val, 'bump');
+      }
+      r.minus.setAttribute('aria-disabled', plan(def.key, -1).err ? 'true' : 'false');
+      r.plus.setAttribute('aria-disabled', plan(def.key, 1).err ? 'true' : 'false');
+    });
+    $('#eq').textContent = s.civ + ' + ' + s.und + ' + ' + s.white + ' = ' + s.total;
+    CATEGORIES.forEach(function (c) {
+      pillRefs[c.id].setAttribute('aria-pressed', s.cats[c.id] ? 'true' : 'false');
+    });
+    var fresh = freshCount();
+    $('#poolChip').textContent = fresh + ' PAREN';
+    $('#poolChip').setAttribute('aria-label', fresh + ' beschikbare woordparen');
+    syncNames();
+  }
+
+  /* =====================================================================
+     SCREENS & MODALS
+     ===================================================================== */
+  function show(name) {
+    $$('.screen').forEach(function (sc) {
+      var on = sc.id === 's-' + name;
+      sc.classList.toggle('active', on);
+      if (on) sc.removeAttribute('aria-hidden'); else sc.setAttribute('aria-hidden', 'true');
+    });
+    current = name;
+    var sel = SCREEN_FOCUS[name];
+    if (sel) setTimeout(function () { var b = $(sel); if (b && !b.disabled && current === name) b.focus({ preventScroll: true }); }, 450);
+  }
+
+  function openModal(id) {
+    var m = $('#' + id);
+    m.removeAttribute('inert');
+    m.setAttribute('aria-hidden', 'false');
+    m.classList.add('open');
+    setTimeout(function () {
+      var t = m.querySelector('input, .view:not([hidden]) button, .sheet > button');
+      if (t) t.focus({ preventScroll: true });
+    }, 80);
+  }
+
+  function clearPeek() {
+    $('#peekWord').textContent = '';
+    if (game) game.peekId = null;
+  }
+
+  function closeModal(id) {
+    var m = $('#' + id);
+    if (!m.classList.contains('open')) return;
+    if (m.contains(document.activeElement)) document.activeElement.blur();
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+    m.setAttribute('inert', '');
+    if (id === 'm-peek') clearPeek();
+  }
+
+  function closeAllModals() {
+    ['m-peek', 'm-guess', 'm-confirm'].forEach(closeModal);
+  }
+
+  /* =====================================================================
+     GAME FLOW
+     ===================================================================== */
+  function getNames() {
+    var out = [];
+    for (var i = 0; i < state.setup.total; i++) {
+      var raw = String(state.names[i] || '').trim().replace(/\s+/g, ' ');
+      out.push(raw || ('Speler ' + (i + 1)));
+    }
+    return out;
+  }
+
+  function pickPair() {
+    var pool = enabledPairs();
+    var usedMap = toMap(state.used);
+    var fresh = pool.filter(function (p) { return !usedMap[p.id]; });
+    var recycled = false;
+    if (!fresh.length) {
+      var poolIds = toMap(pool.map(function (p) { return p.id; }));
+      state.used = state.used.filter(function (id) { return !poolIds[id]; });
+      fresh = pool;
+      recycled = true;
+    }
+    var pair = fresh[rand(fresh.length)];
+    state.used.push(pair.id);
+    save();
+    return { pair: pair, recycled: recycled };
+  }
+
+  function startGame() {
+    var names = getNames();
+    var seen = {};
+    for (var i = 0; i < names.length; i++) {
+      var key = names[i].toLowerCase();
+      if (seen[key] !== undefined) {
+        toast('Dubbele naam: ' + names[i]);
+        buzz(30);
+        var inputs = $$('#nameList input');
+        if (inputs[i]) { inputs[i].scrollIntoView({ block: 'center' }); inputs[i].focus(); }
+        return;
+      }
+      seen[key] = i;
+    }
+
+    var s = state.setup;
+    var roles = [];
+    var k;
+    for (k = 0; k < s.civ; k++) roles.push('civ');
+    for (k = 0; k < s.und; k++) roles.push('und');
+    for (k = 0; k < s.white; k++) roles.push('white');
+    roles = shuffle(roles);
+
+    var picked = pickPair();
+    var swap = rand(2) === 1;
+    var civWord = swap ? picked.pair.b : picked.pair.a;
+    var undWord = swap ? picked.pair.a : picked.pair.b;
+
+    game = {
+      players: names.map(function (n, idx) {
+        var role = roles[idx];
+        return { id: idx, name: n, role: role, alive: true, word: role === 'civ' ? civWord : (role === 'und' ? undWord : null) };
+      }),
+      civWord: civWord, undWord: undWord,
+      round: 1, order: [], passIdx: 0,
+      selected: null, lastOut: null, peekId: null,
+      busy: false, winner: null
+    };
+
+    if (picked.recycled) toast('Alle woordparen gehad — opnieuw geschud');
+    buzz(20);
+    showPass(0);
+  }
+
+  /* ----- Pass & reveal ----- */
+  function showPass(i) {
+    game.passIdx = i;
+    var p = game.players[i], n = game.players.length;
+    $('#passAvatar').textContent = initial(p.name);
+    $('#passName').textContent = p.name;
+    var pct = Math.round((i / n) * 100);
+    $('#passBar').style.width = pct + '%';
+    $('#passProgress').setAttribute('aria-valuenow', String(pct));
+    $('#passCount').textContent = (i + 1) + ' / ' + n;
+    show('pass');
+  }
+
+  function showReveal() {
+    if (!game || current !== 'pass') return;
+    var p = game.players[game.passIdx];
+    var isWhite = p.role === 'white';
+    var last = game.passIdx === game.players.length - 1;
+    $('#revealWho').textContent = p.name;
+    $('#revealLabel').textContent = isWhite ? 'GEEN WOORD' : 'JOUW WOORD';
+    fitWord($('#revealWord'), isWhite ? 'JIJ BENT MR. WHITE' : p.word, isWhite ? 40 : 56);
+    $('#btnHideLabel').textContent = last ? 'VERBERG & START' : 'VERBERG & VOLGENDE';
+    var flip = $('#flip');
+    flip.classList.remove('flipped');
+    show('reveal');
+    clearTimeout(flipTimer);
+    flipTimer = setTimeout(function () { flip.classList.add('flipped'); }, 450);
+    buzz(15);
+  }
+
+  function clearReveal() {
+    clearTimeout(flipTimer);
+    $('#revealWord').textContent = '';
+    $('#flip').classList.remove('flipped');
+  }
+
+  function hideReveal() {
+    if (!game || current !== 'reveal') return;
+    clearReveal(); // woord direct weg, vóór de overgang naar de volgende speler
+    var next = game.passIdx + 1;
+    if (next < game.players.length) showPass(next); else startRound(1);
+  }
+
+  /* ----- Round ----- */
+  function alivePlayers() {
+    return game.players.filter(function (p) { return p.alive; });
+  }
+
+  function makeOrder(firstRound) {
+    var ids = shuffle(alivePlayers().map(function (p) { return p.id; }));
+    if (firstRound && ids.length > 1 && game.players[ids[0]].role === 'white') {
+      var cand = [];
+      ids.forEach(function (id, i) { if (game.players[id].role !== 'white') cand.push(i); });
+      if (cand.length) {
+        var j = cand[rand(cand.length)];
+        var t = ids[0]; ids[0] = ids[j]; ids[j] = t;
+      }
+    }
+    return ids;
+  }
+
+  function startRound(n) {
+    game.round = n;
+    game.busy = false;
+    game.order = makeOrder(n === 1);
+    renderRound();
+    show('round');
+  }
+
+  function renderRound() {
+    var total = game.players.length, aliveN = game.order.length;
+    $('#roundNum').textContent = String(game.round);
+    $('#aliveChip').textContent = aliveN + ' / ' + total;
+    $('#aliveChip').setAttribute('aria-label', aliveN + ' van ' + total + ' spelers in het spel');
+
+    var list = $('#orderList');
+    list.textContent = '';
+    game.order.forEach(function (id, i) {
+      var p = game.players[id];
+      var kids = [h('span', { class: 'n' }, i + 1), h('span', { class: 'nm' }, p.name)];
+      if (i === 0) kids.push(h('span', { class: 'tag' }, 'START'));
+      kids.push(icon('eye'));
+      list.appendChild(h('li', {},
+        h('button', {
+          type: 'button', class: 'prow glass-lite', style: '--i:' + i,
+          'aria-label': p.name + ', bekijk eigen woord',
+          onclick: function () { peekFor(p.id); }
+        }, kids)
+      ));
+    });
+
+    var offset = game.order.length;
+    game.players.filter(function (p) { return !p.alive; }).forEach(function (p, i) {
+      list.appendChild(h('li', {},
+        h('div', { class: 'prow glass-lite dead', style: '--i:' + (offset + i) },
+          h('span', { class: 'n' }, icon('x')),
+          h('span', { class: 'nm' }, p.name),
+          h('span', { class: 'role ' + ROLE_CLASS[p.role] }, ROLE_LABEL[p.role])
+        )
+      ));
+    });
+    list.scrollTop = 0;
+  }
+
+  /* ----- Peek (SPIEK) ----- */
+  function showPeekView(id) {
+    ['peekPick', 'peekGuard', 'peekShow'].forEach(function (v) { $('#' + v).hidden = (v !== id); });
+  }
+
+  function openPeek() {
+    if (!game || current !== 'round') return;
+    var grid = $('#peekGrid');
+    grid.textContent = '';
+    game.order.forEach(function (id, i) {
+      var p = game.players[id];
+      grid.appendChild(h('button', {
+        type: 'button', class: 'vbtn glass-lite', style: '--i:' + i,
+        onclick: function () { peekFor(p.id); }
+      }, p.name));
+    });
+    showPeekView('peekPick');
+    openModal('m-peek');
+  }
+
+  function peekFor(id) {
+    if (!game) return;
+    game.peekId = id;
+    $('#peekName').textContent = game.players[id].name;
+    $('#peekWord').textContent = '';
+    showPeekView('peekGuard');
+    openModal('m-peek');
+  }
+
+  function peekReveal() {
+    if (!game || game.peekId === null) return;
+    var p = game.players[game.peekId];
+    var isWhite = p.role === 'white';
+    $('#peekLabel').textContent = isWhite ? 'GEEN WOORD' : 'JOUW WOORD';
+    fitWord($('#peekWord'), isWhite ? 'JIJ BENT MR. WHITE' : p.word, isWhite ? 36 : 48, 260);
+    showPeekView('peekShow');
+    buzz(12);
+  }
+
+  /* ----- Vote & elimination ----- */
+  function openVote() {
+    if (!game || current !== 'round') return;
+    game.selected = null;
+    $('#voteConfirm').disabled = true;
+    var grid = $('#voteGrid');
+    grid.textContent = '';
+    game.order.forEach(function (id, i) {
+      var p = game.players[id];
+      grid.appendChild(h('button', {
+        type: 'button', class: 'vbtn glass-lite', 'aria-pressed': 'false', 'data-id': p.id, style: '--i:' + i,
+        onclick: function () { selectVote(p.id); }
+      }, p.name));
+    });
+    show('vote');
+  }
+
+  function selectVote(id) {
+    game.selected = id;
+    $$('.vbtn', $('#voteGrid')).forEach(function (b) {
+      b.setAttribute('aria-pressed', Number(b.getAttribute('data-id')) === id ? 'true' : 'false');
+    });
+    $('#voteConfirm').disabled = false;
+    buzz(10);
+  }
+
+  function confirmVote() {
+    if (!game || current !== 'vote' || game.selected === null) return;
+    var p = game.players[game.selected];
+    p.alive = false;
+    game.lastOut = p;
+    showElim(p);
+  }
+
+  function showElim(p) {
+    var el = $('#s-elim');
+    el.style.setProperty('--rc', ROLE_RGB[p.role]);
+    $('#elimName').textContent = p.name;
+    $('#elimRole').textContent = ROLE_LABEL[p.role];
+    var orb = $('#elimOrb');
+    orb.textContent = '';
+    orb.appendChild(h('span', { class: 'ring' }));
+    orb.appendChild(icon(ROLE_ICON[p.role]));
+    var btn = $('#elimNext');
+    btn.disabled = true;
+    el.classList.remove('play');
+    show('elim');
+    void el.offsetWidth;
+    el.classList.add('play');
+    clearTimeout(elimTimer);
+    elimTimer = setTimeout(function () {
+      btn.disabled = false;
+      if (current === 'elim') btn.focus({ preventScroll: true });
+      buzz([40, 50, 110]);
+    }, 2300);
+  }
+
+  function elimDone() {
+    if (!game || current !== 'elim' || game.busy) return;
+    game.busy = true;
+    var p = game.lastOut;
+    if (p.role === 'white') openGuess(p); else afterElimination();
+  }
+
+  function checkWin() {
+    var alive = alivePlayers();
+    var civ = alive.filter(function (p) { return p.role === 'civ'; }).length;
+    var inf = alive.length - civ;
+    if (inf === 0) return 'civ';
+    if (civ <= 1) return 'inf';
+    return null;
+  }
+
+  function afterElimination() {
+    var w = checkWin();
+    if (w) endGame(w, null); else startRound(game.round + 1);
+  }
+
+  /* ----- Mr. White last chance ----- */
+  function openGuess(p) {
+    guessLocked = false;
+    $('#guessWho').textContent = p.name;
+    var input = $('#guessInput');
+    input.value = '';
+    input.readOnly = false;
+    $('#guessFb').textContent = '';
+    $('#guessFb').className = 'feedback';
+    $('#guessBtn').disabled = false;
+    openModal('m-guess');
+  }
+
+  function submitGuess(e) {
+    e.preventDefault();
+    if (!game || guessLocked) return;
+    var input = $('#guessInput');
+    var guess = norm(input.value);
+    if (!guess) {
+      restart(input, 'shake');
+      input.focus();
+      return;
+    }
+    guessLocked = true;
+    input.readOnly = true;
+    $('#guessBtn').disabled = true;
+    var ok = guess === norm(game.civWord);
+    var fb = $('#guessFb');
+    fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
+    fb.textContent = ok ? 'GOED!' : 'FOUT!';
+    if (!ok) restart($('#guessForm'), 'shake');
+    buzz(ok ? [30, 40, 120] : 200);
+    clearTimeout(guessTimer);
+    guessTimer = setTimeout(function () {
+      closeModal('m-guess');
+      if (!game) return;
+      if (ok) endGame('white', game.lastOut.id); else afterElimination();
+    }, 1100);
+  }
+
+  /* ----- Victory ----- */
+  function confetti() {
+    var colors = ['#8b5cf6', '#22d3ee', '#ec4899', '#6366f1', '#f4f5ff', '#5eead4'];
+    for (var i = 0; i < 40; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var dist = 120 + Math.random() * 220;
+      var el = h('i', {
+        class: 'confetti', 'aria-hidden': 'true',
+        style: '--dx:' + Math.round(Math.cos(angle) * dist) + 'px;--dy:' + Math.round(Math.sin(angle) * dist + 80) + 'px;--rot:' + Math.round(Math.random() * 720 - 360) + 'deg;--c:' + colors[i % colors.length]
+      });
+      document.body.appendChild(el);
+      (function (node) {
+        setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 2000);
+      })(el);
+    }
+  }
+
+  function endGame(winner, stealerId) {
+    game.winner = winner;
+    var el = $('#s-victory');
+    el.setAttribute('data-winner', winner);
+
+    var title, sub;
+    if (winner === 'civ') { title = 'BURGERS WINNEN'; sub = 'ALLE INFILTRANTEN ZIJN UIT'; }
+    else if (winner === 'inf') { title = 'INFILTRANTEN WINNEN'; sub = 'NOG MAAR 1 BURGER OVER'; }
+    else { title = 'MR. WHITE WINT'; sub = game.players[stealerId].name + ' RAADDE HET WOORD'; }
+    $('#vTitle').textContent = title;
+    $('#vSub').textContent = sub;
+    $('#vCiv').textContent = game.civWord;
+    $('#vUnd').textContent = game.undWord;
+
+    var list = $('#vList');
+    list.textContent = '';
+    game.players.forEach(function (p, i) {
+      var isWinner = winner === 'civ' ? p.role === 'civ'
+        : winner === 'inf' ? p.role !== 'civ'
+        : p.id === stealerId;
+      var kids = [
+        h('span', { class: 'n' }, i + 1),
+        h('span', { class: 'nm' }, p.name),
+        p.alive ? null : h('span', { class: 'out-note' }, 'UIT'),
+        h('span', { class: 'role ' + ROLE_CLASS[p.role] }, ROLE_LABEL[p.role]),
+        isWinner ? icon('crown') : null
+      ];
+      list.appendChild(h('li', {}, h('div', { class: 'prow glass-lite' + (isWinner ? ' win' : ''), style: '--i:' + i }, kids)));
+    });
+    list.scrollTop = 0;
+
+    show('victory');
+    confetti();
+    buzz([60, 40, 60, 40, 160]);
+  }
+
+  function resetToSetup() {
+    clearTimeout(flipTimer);
+    clearTimeout(elimTimer);
+    clearTimeout(guessTimer);
+    clearReveal();
+    clearPeek();
+    closeAllModals();
+    game = null;
+    show('setup');
+    renderSetup();
+  }
+
+  /* =====================================================================
+     INIT
+     ===================================================================== */
+  function init() {
+    loadState();
+    buildSetup();
+    renderSetup();
+
+    $('#btnStart').addEventListener('click', startGame);
+    $('#btnSee').addEventListener('click', showReveal);
+    $('#btnHide').addEventListener('click', hideReveal);
+    $('#btnPeek').addEventListener('click', openPeek);
+    $('#btnVote').addEventListener('click', openVote);
+    $('#voteBack').addEventListener('click', function () { if (game && current === 'vote') show('round'); });
+    $('#voteConfirm').addEventListener('click', confirmVote);
+    $('#elimNext').addEventListener('click', elimDone);
+    $('#btnAgain').addEventListener('click', resetToSetup);
+    $('#btnStop').addEventListener('click', function () { openModal('m-confirm'); });
+    $('#confirmYes').addEventListener('click', resetToSetup);
+
+    $('#peekSee').addEventListener('click', peekReveal);
+    $('#peekCancel').addEventListener('click', function () { closeModal('m-peek'); });
+    $('#peekHide').addEventListener('click', function () { closeModal('m-peek'); });
+    $('#guessForm').addEventListener('submit', submitGuess);
+
+    $$('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { closeModal(b.getAttribute('data-close')); });
+    });
+    ['m-peek', 'm-confirm'].forEach(function (id) {
+      $('#' + id).addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(id); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if ($('#m-peek').classList.contains('open')) closeModal('m-peek');
+      else if ($('#m-confirm').classList.contains('open')) closeModal('m-confirm');
+    });
+
+    // Anti-spy: als de pagina op de achtergrond gaat, nooit een woord laten staan.
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden || !game) return;
+      if ($('#m-peek').classList.contains('open')) closeModal('m-peek');
+      if (current === 'reveal') {
+        clearReveal();
+        showPass(game.passIdx);
+      }
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
