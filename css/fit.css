@@ -42,7 +42,7 @@
 }
 
 /* Hub-kaarten */
-.gc-title{letter-spacing:.08em;text-align:center;text-wrap:balance;hyphens:auto}
+.gc-title{text-align:center;text-wrap:balance;hyphens:none}
 .gc-tag{overflow-wrap:anywhere;text-align:center;text-wrap:balance}
 .gc-meta{max-width:100%;white-space:normal;text-align:center;line-height:1.25}
 .rc-text b,.rc-text small{overflow-wrap:anywhere}

@@ -1,16 +1,13 @@
-/* LaFête scenery: planets (deep-space), sunny sky (blue-sky), 3D welcome stage and logo typography.
+/* LaFête scenery: planets (deep-space), sunny sky (blue-sky), 3D welcome title and logo typography.
    Loaded after themes.css. Everything animates transform/opacity only. */
 
 :root{
-  --font-logo:'Outfit','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
-  --r1:#a78bfa;--r2:#22d3ee;--r3:#f0abfc;
-  --oa:#c4b5fd;--ob:#2e1065;
-  --cube-edge:rgba(196,181,253,.75);--cube-a:rgba(255,255,255,.2);--cube-b:rgba(124,58,237,.12);
+  --font-logo:'Syne','Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
   --d1:#6d28d9;--d2:#4c1d95;--d3:#2e1065;
 }
-html[data-theme="party-burst"]{--r1:#b6ff00;--r2:#ff2daa;--r3:#ffb020;--oa:#ff2daa;--ob:#4a0d3a;--cube-edge:rgba(182,255,0,.8);--cube-a:rgba(255,45,170,.28);--cube-b:rgba(182,255,0,.1);--d1:#be185d;--d2:#831843;--d3:#4a044e}
-html[data-theme="blue-sky"]{--r1:#2563eb;--r2:#0ea5e9;--r3:#1e3a8a;--oa:#bfdbfe;--ob:#2563eb;--cube-edge:rgba(37,99,235,.75);--cube-a:rgba(255,255,255,.7);--cube-b:rgba(147,197,253,.3);--d1:#1d4ed8;--d2:#1e40af;--d3:#172554}
-html[data-theme="deep-space"]{--r1:#a78bfa;--r2:#22d3ee;--r3:#f0abfc;--oa:#22d3ee;--ob:#1e1b4b;--cube-edge:rgba(34,211,238,.75);--cube-a:rgba(124,58,237,.3);--cube-b:rgba(34,211,238,.1);--d1:#5b21b6;--d2:#3b0f8a;--d3:#1e0a4a}
+html[data-theme="party-burst"]{--d1:#be185d;--d2:#831843;--d3:#4a044e}
+html[data-theme="blue-sky"]{--d1:#1d4ed8;--d2:#1e40af;--d3:#172554}
+html[data-theme="deep-space"]{--d1:#5b21b6;--d2:#3b0f8a;--d3:#1e0a4a}
 
 /* ===== Logo typography ===== */
 .logo h1.brand{font-family:var(--font-logo);font-style:normal;font-weight:800;font-size:2.6rem;line-height:1;letter-spacing:0}
@@ -127,12 +124,13 @@ html[data-theme="blue-sky"] .fx-sky{display:block}
 @keyframes lf-cloud-b{from{transform:translate3d(5vw,0,0)}to{transform:translate3d(-6vw,0,0)}}
 
 /* ===== 3D logo: extruded layers behind the front face ===== */
-.portal-title{transform:none;perspective:700px;font-family:var(--font-logo);font-style:normal;font-weight:800;font-size:clamp(4.6rem,23vw,9rem);letter-spacing:0}
+.portal-title{appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent;transform:none;perspective:700px;font-family:var(--font-logo);font-style:normal;font-weight:800;font-size:clamp(4.6rem,23vw,9rem);letter-spacing:0}
 .pt-text,.pt-layer{font-style:normal}
 /* Desktop: geen tekstselectie of blauw vlak over het logo en de 3D-scène */
 #s-welcome,#s-welcome *{-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
 #s-welcome ::selection{background:transparent;color:inherit}
-.portal-title:focus:not(:focus-visible){outline:none}
+/* Geen focusrand/vak rond de titel (ook niet na focus via script of in het blauwe thema, dat een eigen :focus-visible-outline heeft) */
+html .portal-title,html .portal-title:hover,html .portal-title:active,html .portal-title:focus,html .portal-title:focus-visible,html[data-theme] .portal-title:focus-visible{outline:none;box-shadow:none;background:transparent;border-color:transparent}
 .pt-stack{
   position:relative;display:block;transform-style:preserve-3d;
   transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg));
@@ -143,66 +141,18 @@ html[data-theme="blue-sky"] .fx-sky{display:block}
 .pt-layer.d2{color:var(--d2);transform:translateZ(-18px)}
 .pt-layer.d3{color:var(--d3);transform:translateZ(-27px);text-shadow:0 0 30px rgba(0,0,0,.35)}
 
-/* ===== 3D stage behind the logo: rings, glass cubes, orbs ===== */
-.stage3d{position:absolute;inset:0;perspective:900px;perspective-origin:50% 44%;pointer-events:none}
-.scene{
-  position:absolute;left:50%;top:44%;width:0;height:0;transform-style:preserve-3d;
-  transform:rotateX(var(--sx,0deg)) rotateY(var(--sy,0deg));
+/* ===== Title interaction: hover glow, spring press (the tap-to-enter ripple lives in themes.css) ===== */
+.portal-title{transition:scale .5s var(--spring);touch-action:manipulation}
+.pt-text{transition:filter .35s var(--out)}
+.portal-title:active{scale:.97;transition-duration:.12s}
+@media (hover:hover) and (pointer:fine){
+  .portal-title:hover{scale:1.045}
+  .portal-title:hover .pt-text{filter:drop-shadow(0 0 38px rgba(167,139,250,.85)) drop-shadow(0 0 12px rgba(34,211,238,.55))}
+  html[data-theme="blue-sky"] .portal-title:hover .pt-text{filter:drop-shadow(0 0 30px rgba(37,99,235,.55)) drop-shadow(0 0 10px rgba(255,255,255,.9))}
 }
-.ring3d{
-  --d:min(76vw,372px);position:absolute;left:0;top:0;width:var(--d);height:var(--d);
-  margin:calc(var(--d) / -2) 0 0 calc(var(--d) / -2);border-radius:50%;
-  border:2px solid currentColor;opacity:.75;box-shadow:0 0 22px currentColor,inset 0 0 22px currentColor;
-  transform-style:preserve-3d;will-change:transform;
-}
-.ring3d::after{
-  content:"";position:absolute;top:-7px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;
-  background:#fff;box-shadow:0 0 16px 5px currentColor;
-}
-.ring3d.rg1{color:var(--r1);animation:lf-spin-a 16s linear infinite}
-.ring3d.rg2{--d:min(62vw,300px);color:var(--r2);animation:lf-spin-b 22s linear infinite reverse}
-.ring3d.rg3{--d:min(92vw,440px);color:var(--r3);opacity:.45;animation:lf-spin-c 34s linear infinite}
-@keyframes lf-spin-a{from{transform:rotateX(72deg) rotateZ(0deg)}to{transform:rotateX(72deg) rotateZ(360deg)}}
-@keyframes lf-spin-b{from{transform:rotateY(70deg) rotateZ(0deg)}to{transform:rotateY(70deg) rotateZ(360deg)}}
-@keyframes lf-spin-c{from{transform:rotateX(-32deg) rotateY(48deg) rotateZ(0deg)}to{transform:rotateX(-32deg) rotateY(48deg) rotateZ(360deg)}}
-
-.cube3d{
-  --s:56px;position:absolute;width:var(--s);height:var(--s);margin:calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
-  transform-style:preserve-3d;will-change:transform;
-}
-.cube3d i{
-  position:absolute;inset:0;border:1.5px solid var(--cube-edge);
-  background:linear-gradient(145deg,var(--cube-a),var(--cube-b));box-shadow:inset 0 0 14px var(--cube-edge);
-}
-.cube3d i:nth-child(1){transform:translateZ(calc(var(--s) / 2))}
-.cube3d i:nth-child(2){transform:rotateY(180deg) translateZ(calc(var(--s) / 2))}
-.cube3d i:nth-child(3){transform:rotateY(90deg) translateZ(calc(var(--s) / 2))}
-.cube3d i:nth-child(4){transform:rotateY(-90deg) translateZ(calc(var(--s) / 2))}
-.cube3d i:nth-child(5){transform:rotateX(90deg) translateZ(calc(var(--s) / 2))}
-.cube3d i:nth-child(6){transform:rotateX(-90deg) translateZ(calc(var(--s) / 2))}
-.cube3d.c1{left:calc(min(34vw,150px) * -1);top:max(-168px,-24vh);animation:lf-cube-a 20s linear infinite}
-.cube3d.c2{--s:40px;left:min(33vw,140px);top:min(150px,22vh);animation:lf-cube-b 26s linear infinite}
-@keyframes lf-cube-a{from{transform:translateZ(60px) rotateX(20deg) rotateY(0deg)}to{transform:translateZ(60px) rotateX(380deg) rotateY(360deg)}}
-@keyframes lf-cube-b{from{transform:translateZ(-40px) rotateX(0deg) rotateY(30deg)}to{transform:translateZ(-40px) rotateX(-360deg) rotateY(390deg)}}
-
-.orb3d{
-  position:absolute;left:0;top:0;width:var(--z);height:var(--z);margin:calc(var(--z) / -2) 0 0 calc(var(--z) / -2);
-  border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff 0,var(--oa) 30%,var(--ob) 100%);
-  box-shadow:0 0 18px var(--oa);will-change:transform;animation:lf-orb 7s ease-in-out infinite;
-}
-.orb3d.o1{--z:22px;--ox:-120px;--oy:-70px;--oz:80px}
-.orb3d.o2{--z:16px;--ox:130px;--oy:-40px;--oz:-60px;animation-delay:-2s}
-.orb3d.o3{--z:30px;--ox:-110px;--oy:90px;--oz:-40px;animation-delay:-4s}
-.orb3d.o4{--z:14px;--ox:100px;--oy:110px;--oz:100px;animation-delay:-1s}
-.orb3d.o5{--z:12px;--ox:0px;--oy:-190px;--oz:-90px;animation-delay:-3s}
-@keyframes lf-orb{
-  0%,100%{transform:translate3d(var(--ox),var(--oy),var(--oz))}
-  50%{transform:translate3d(var(--ox),calc(var(--oy) - 14px),var(--oz))}
-}
-
-.screen:not(.active) .stage3d *{animation-play-state:paused}
-.screen.entering .stage3d{opacity:0;transform:scale(1.5);transition:opacity .7s var(--out),transform .8s var(--out)}
+.screen.entering .portal-title{scale:1}
 
 @media (prefers-reduced-motion:reduce){
-  .planet,.fx-sky .sun,.fx-sky .rays,.cloudbank,.ring3d,.cube3d,.orb3d{animation:none}
+  .planet,.fx-sky .sun,.fx-sky .rays,.cloudbank{animation:none}
+  .portal-title,.pt-text{transition-duration:.01s}
 }

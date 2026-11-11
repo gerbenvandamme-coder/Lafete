@@ -5,7 +5,8 @@
 @property --accent-2{syntax:'<color>';inherits:true;initial-value:#ff2daa}
 
 :root{
-  --font-display:'Syne','Outfit',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-num:'Space Grotesk','Plus Jakarta Sans',system-ui,sans-serif;
+  --font-display:'Syne','Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --accent:#b6ff00;
   --accent-2:#ff2daa;
   --neon-a:#22d3ee;
@@ -29,10 +30,6 @@ html.fx-paused .aurora *{animation-play-state:paused}
 
 /* ----- party-burst ----- */
 html[data-theme="party-burst"]{--bg:#07030f;--violet:#a855f7;--cyan:#b6ff00;--magenta:#ff2daa}
-html[data-theme="party-burst"] .b1{background:radial-gradient(circle at 40% 40%,#ff2daa,transparent 66%)}
-html[data-theme="party-burst"] .b2{background:radial-gradient(circle at 50% 50%,#b6ff00,transparent 66%);opacity:.32}
-html[data-theme="party-burst"] .b3{background:radial-gradient(circle at 50% 50%,#ffb020,transparent 66%);opacity:.34}
-html[data-theme="party-burst"] .b4{background:radial-gradient(circle at 50% 50%,#8f3dff,transparent 66%);opacity:.5}
 html[data-theme="party-burst"] :focus-visible{outline-color:var(--accent)}
 html[data-theme="party-burst"] .btn-primary{
   color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.55);
@@ -73,7 +70,7 @@ html[data-theme="blue-sky"]{
   color-scheme:light;
 }
 html[data-theme="blue-sky"] .aurora{background:linear-gradient(180deg,#dbeafe 0%,#eff6ff 100%)}
-html[data-theme="blue-sky"] .blob{display:none}
+/* blue-sky: no blob backdrop */
 html[data-theme="blue-sky"] .vignette{background:radial-gradient(ellipse at 50% 30%,rgba(255,255,255,.35),transparent 70%)}
 .cloud{position:absolute;border-radius:50%;background:#fff;opacity:.65;filter:blur(50px);will-change:transform}
 .cloud.c1{width:62vmax;height:26vmax;top:-6vmax;left:-20vmax;animation:cloud-a 70s ease-in-out infinite alternate}
@@ -114,7 +111,7 @@ html[data-theme="blue-sky"] .pc-tag{color:#0f172a;color:color-mix(in srgb,rgb(va
 
 /* ----- deep-space ----- */
 html[data-theme="deep-space"]{--bg:#020208}
-html[data-theme="deep-space"] .blob{display:none}
+/* deep-space: no blob backdrop */
 .fx-nebula{overflow:hidden}
 .fx-nebula i{
   position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;will-change:transform;

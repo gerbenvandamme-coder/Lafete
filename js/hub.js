@@ -27,7 +27,7 @@
           <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg>
         </button>
         <p class="sec">KIES EEN SPEL</p>
-        <div class="game-list" id="gameList"></div>
+        <div class="games-grid" id="gameList"></div>
       </div>
     </div>
   </section>

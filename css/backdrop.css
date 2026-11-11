@@ -1,0 +1,36 @@
+/* LaFête glass materials and pointer-down ripple.
+   The video and decor layers were removed: js/bg-engine.js (Three.js) draws the backdrop. */
+
+/* Procedural refraction and bevel highlights for glass surfaces; the SVG filter is inline in index.html. */
+html[data-theme] .glass,html[data-theme] .glass-lite{
+  -webkit-backdrop-filter:blur(20px) saturate(170%);
+  backdrop-filter:blur(20px) saturate(170%) url(#liquid-glass-warp);
+  border-color:rgba(255,255,255,.16);
+  border-top-color:rgba(255,255,255,.42);
+  border-left-color:rgba(255,255,255,.3);
+  box-shadow:inset 1px 1px 2px rgba(255,255,255,.5),inset -1px -1px 3px rgba(0,0,0,.15),0 12px 40px rgba(0,0,0,.25);
+  background-image:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.025) 48%,rgba(255,255,255,.08));
+}
+html button.glass:active,html button.glass-lite:active{
+  transform:scale(.97);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1),box-shadow .3s var(--out);
+}
+
+/* Pointer-down glows start at the exact tap position and never cover the interface. */
+.glass-ripple{
+  position:fixed;z-index:2147483647;left:var(--ripple-x);top:var(--ripple-y);
+  width:12px;height:12px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.58),rgba(125,211,252,.24) 38%,rgba(139,92,246,.14) 65%,transparent 72%);
+  box-shadow:0 0 18px rgba(255,255,255,.4);
+  transform:translate(-50%,-50%) scale(.15);opacity:.9;
+  animation:glass-ripple .65s cubic-bezier(.2,.7,.25,1) forwards;
+  will-change:transform,opacity;
+}
+@keyframes glass-ripple{to{transform:translate(-50%,-50%) scale(15);opacity:0}}
+html[data-theme="blue-sky"] .glass-ripple{
+  background:radial-gradient(circle,rgba(255,255,255,.72),rgba(96,165,250,.3) 42%,rgba(37,99,235,.12) 68%,transparent 74%);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .glass-ripple{animation-duration:.01s}
+}

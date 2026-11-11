@@ -41,13 +41,21 @@
     ui.mount(HTML);
     const themes = $('#themeGrid');
     LG.theme.list.forEach((t) => {
-      themes.appendChild(option(t.id, t.label, h('span', { class: 'opt-sw ' + t.swatch, 'aria-hidden': 'true' }), LG.theme.set));
+      themes.appendChild(option(t.id, t.label, h('span', { class: 'opt-sw ' + t.swatch, 'aria-hidden': 'true' }), (id) => {
+        const changed = LG.theme.get() !== id;
+        LG.theme.set(id);
+        if (changed && LG.sound) LG.sound.chime();
+      }));
     });
     const packs = $('#iconGrid');
     LG.icons.list.forEach((p) => {
       packs.appendChild(option(p.id, p.label,
         h('span', { class: 'opt-ic pk-' + p.id, 'aria-hidden': 'true' }, LG.renderGameIcon('undercover', p.id)),
-        LG.icons.set));
+        (id) => {
+          const changed = LG.icons.get() !== id;
+          LG.icons.set(id);
+          if (changed && LG.sound) LG.sound.chime();
+        }));
     });
     sync();
     document.addEventListener('click', (e) => {

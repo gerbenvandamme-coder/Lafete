@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  /* Welcome portal (#s-welcome): the LaFête logo is the "play" button, floating in a 3D stage
-     (rings, glass cubes, orbs) that tilts with the pointer and sways gently when idle. */
+  /* Welcome portal (#s-welcome): the LaFête logo is the "play" button. The extruded 3D title tilts
+     with the pointer and sways gently when idle. */
 
   const LG = window.LG;
   const $ = LG.$, ui = LG.ui;
@@ -11,8 +11,6 @@
   let entering = false;
 
   const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const cubeFaces = '<i></i><i></i><i></i><i></i><i></i><i></i>';
-
   const HTML = `
   <section class="screen" id="s-welcome" aria-label="Welkom bij LaFête">
     <div class="wrap welcome-wrap">
@@ -22,14 +20,6 @@
       </header>
       <div class="portal" id="portal">
         <div class="portal-aura" aria-hidden="true"></div>
-        <div class="stage3d" aria-hidden="true">
-          <div class="scene">
-            <i class="ring3d rg3"></i><i class="ring3d rg1"></i><i class="ring3d rg2"></i>
-            <div class="cube3d c1">${cubeFaces}</div>
-            <div class="cube3d c2">${cubeFaces}</div>
-            <i class="orb3d o1"></i><i class="orb3d o2"></i><i class="orb3d o3"></i><i class="orb3d o4"></i><i class="orb3d o5"></i>
-          </div>
-        </div>
         <div class="portal-float">
           <button type="button" class="portal-title" id="portalTitle" aria-label="LaFête, tik om te beginnen">
             <span class="pt-stack">
@@ -82,8 +72,6 @@
     const tx = tilt.cx + Math.cos(now / 3100) * 3;
     portal.style.setProperty('--ty', ty.toFixed(2) + 'deg');
     portal.style.setProperty('--tx', tx.toFixed(2) + 'deg');
-    portal.style.setProperty('--sy', (ty * 1.6).toFixed(2) + 'deg');
-    portal.style.setProperty('--sx', (tx * 1.6).toFixed(2) + 'deg');
     tilt.raf = requestAnimationFrame(frame);
   }
 

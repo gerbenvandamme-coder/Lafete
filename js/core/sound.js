@@ -9,7 +9,7 @@
   const AC = window.AudioContext || window.webkitAudioContext;
   const MIN = 0.0001;
   const MASTER_GAIN = 0.8;
-  const UNLOCK_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
+  const UNLOCK_EVENTS = ['pointerdown', 'keydown'];
 
   let ctx = null;
   let master = null;
@@ -49,40 +49,9 @@
     return c && c.state === 'running' ? c : null;
   }
 
-  /* iOS plays Web Audio through the ringer channel, so the silent switch mutes it.
-     A (silent) media element, or the audioSession API, moves it to the media channel. */
-  let primed = false;
-  let keepAlive = null;
-
-  function silentWavUrl() {
-    const n = 800;
-    const bytes = new Uint8Array(44 + n * 2);
-    const dv = new DataView(bytes.buffer);
-    const str = function (o, s) { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
-    str(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
-    dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
-    dv.setUint32(24, 8000, true); dv.setUint32(28, 16000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
-    str(36, 'data'); dv.setUint32(40, n * 2, true);
-    return URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));
-  }
-
-  function primeMediaChannel() {
-    if (primed) return;
-    primed = true;
-    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* niet ondersteund */ }
-    try {
-      keepAlive = new Audio(silentWavUrl());
-      keepAlive.loop = true;
-      keepAlive.setAttribute('playsinline', '');
-      const p = keepAlive.play();
-      if (p && p.catch) p.catch(function () { primed = false; });
-    } catch (e) { keepAlive = null; }
-  }
-
   function unlock() {
     ensure();
-    primeMediaChannel();
-    if (ctx && ctx.state === 'running' && primed) {
+    if (ctx && ctx.state === 'running') {
       UNLOCK_EVENTS.forEach((ev) => document.removeEventListener(ev, unlock, true));
     }
   }
@@ -150,18 +119,32 @@
 
   /* ----- public sounds ----- */
   const TAPS = {
-    soft: { type: 'sine', f0: 900, f1: 280, peak: 0.22 },
-    select: { type: 'triangle', f0: 900, f1: 280, peak: 0.26 },
-    heavy: { type: 'triangle', f0: 700, f1: 220, peak: 0.32 }
+    soft: { type: 'sine', f0: 1450, f1: 920, peak: 0.16 },
+    select: { type: 'sine', f0: 1650, f1: 1050, peak: 0.2 },
+    heavy: { type: 'triangle', f0: 1200, f1: 600, peak: 0.24 }
   };
 
-  // Glass micro-click: 900 Hz -> 280 Hz in 32 ms, with +-4% pitch variation.
+  // Glass micro-click: a high sine pulse with a short exponential decay.
   function tap(variant) {
     const c = guard();
     if (!c) return;
     const v = TAPS[variant] || TAPS.soft;
     const k = jitter(0.04);
-    tone(v.type, v.f0 * k, v.f1 * k, c.currentTime, 0.032, v.peak, master, 0.002);
+    tone(v.type, v.f0 * k, v.f1 * k, c.currentTime, 0.04, v.peak, master, 0.0015);
+  }
+
+  function chime() {
+    const c = guard();
+    if (!c) return;
+    const t = c.currentTime;
+    tone('sine', 880, 880, t, 0.22, 0.12, master, 0.008);
+    tone('triangle', 1318.51, 1318.51, t + 0.075, 0.3, 0.07, master, 0.012);
+  }
+
+  function warning() {
+    const c = guard();
+    if (!c) return;
+    tone('triangle', 420, 190, c.currentTime, 0.18, 0.2, master, 0.006);
   }
 
   // Frosted-glass whoosh: bandpassed noise sweeping 350 -> 1600 Hz (open) or 1400 -> 300 Hz (close).
@@ -334,18 +317,29 @@
   const CLICKABLE = 'button, [role="button"], a[href], summary, label[for], .pill, .step, .vbtn, .btn, .icon-btn, .game-card, .roster-card';
   const FIRM = '.vbtn, .btn-primary, .btn-danger, .game-card';
 
-  document.addEventListener('click', function (e) {
-    if (!e.isTrusted) return; // programmatic .click() calls must not make a second sound
+  function playFeedback(e, keyboard) {
+    if (!e.isTrusted || (keyboard && e.detail !== 0)) return;
     const t = e.target && e.target.closest ? e.target.closest(CLICKABLE) : null;
     if (!t || t.disabled || t.getAttribute('aria-disabled') === 'true') return;
     if (buttons.indexOf(t) !== -1) return; // the mute button plays its own confirmation tap
     if (t.closest('.hold-btn')) return;    // hold-to-reveal already plays the shutter sound
     playTap(t.matches(FIRM) ? 'select' : 'soft');
-  }, true);
+    if (!keyboard && t.closest('.glass, .glass-lite')) {
+      const ripple = document.createElement('i');
+      ripple.className = 'glass-ripple';
+      ripple.setAttribute('aria-hidden', 'true');
+      ripple.style.setProperty('--ripple-x', e.clientX + 'px');
+      ripple.style.setProperty('--ripple-y', e.clientY + 'px');
+      document.body.appendChild(ripple);
+      ripple.addEventListener('animationend', function () { ripple.remove(); }, { once: true });
+    }
+  }
+
+  document.addEventListener('pointerdown', function (e) { playFeedback(e, false); }, { capture: true, passive: true });
+  document.addEventListener('click', function (e) { playFeedback(e, true); }, true);
 
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { stopAll(); if (keepAlive) keepAlive.pause(); }
-    else if (keepAlive && primed) { const p = keepAlive.play(); if (p && p.catch) p.catch(function () { /* wacht op gebaar */ }); }
+    if (document.hidden) stopAll();
   });
 
   // If the context is still suspended (first gesture, or iOS 'interrupted'), resume it first and then
@@ -371,6 +365,8 @@
 
   LG.sound = window.SoundEngine = {
     tap: playTap,
+    chime: afterResume(chime),
+    warning: afterResume(warning),
     shutter: afterResume(shutter),
     heartbeat: afterResume(heartbeat),
     eliminationDrama: afterResume(eliminationDrama),
