@@ -1,5 +1,5 @@
 /* LaFête "chromatic liquid glass" layer.
-   Loaded last: new typography, refractive glass with a dispersion rim, jelly press + chromatic ripple
+   Loaded last: new typography, refractive glass with a dispersion rim, jelly press
    (js/core/fx.js), 3D game orbs (icon pack liquid-3d), and the WebGL backdrop hook-up (js/bg-engine.js).
    Animations use transform / scale / rotate / opacity only. */
 
@@ -97,9 +97,11 @@ h1,h2,h3,.title,.gc-title,.brand,.big-name,.round-title b,.sheet h3,.vhead h2{fo
 .sec,.eyebrow,.set-sec,.hof-h,.stage-note,.count{font-family:var(--font);font-weight:800}
 
 /* ===== Backdrop: WebGL inside the aurora layer, film grain on top ===== */
-#webgl-bg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
-html.has-webgl .aurora{background:#05040e}
-html.has-webgl[data-theme="blue-sky"] .aurora{background:#cfe3ff}
+/* The canvas sits under the (now transparent) aurora layer, so CSS scenery like clouds and planets
+   still draws on top. It must not live inside .aurora: that layer is contained/composited and
+   glass would then stop blurring the 3D scene behind it. */
+#webgl-bg{position:fixed;inset:0;z-index:0;width:100%;height:100%;display:block;pointer-events:none}
+html.has-webgl .aurora,html.has-webgl[data-theme] .aurora{background:transparent}
 html.has-webgl .fx-clouds{opacity:.55}
 html.has-webgl .vignette{background:radial-gradient(ellipse at 50% 42%,transparent 45%,rgba(3,2,10,.55) 100%)}
 html.has-webgl[data-theme="blue-sky"] .vignette{background:radial-gradient(ellipse at 50% 30%,rgba(255,255,255,.28),transparent 70%)}
@@ -109,6 +111,10 @@ html.has-webgl[data-theme="deep-space"] .fx-nebula{opacity:.6}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 html[data-theme="blue-sky"] .grain{opacity:.05;mix-blend-mode:soft-light}
+
+/* Screens are fixed (same box as #app). With position:absolute inside the fixed #app, Chromium's glass
+   did not blur the WebGL backdrop at all; as fixed layers it does. */
+.screen{position:fixed}
 
 /* ===== Chromatic liquid glass ===== */
 :where(.glass,.glass-lite,.btn,.opt){position:relative}
@@ -191,9 +197,9 @@ html.fx-paused .btn-primary{animation-play-state:paused}
 .icon-btn,.dock-btn{border-radius:20px}
 .logo-ic{border-radius:16px}
 /* System icons get a gentle metallic sheen inside glass controls. */
-.icon-btn:not(.mini) .ic,.dock-btn .ic,.logo-ic .ic,.group-chip .ic,.roster-card>.ic{stroke:url(#ic-sheen);filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.icon-btn:not(.mini) .ic,.dock-btn .ic,.logo-ic .ic,.group-chip .ic,.roster-card>.ic{stroke:url(#ic-sheen)}
 html[data-theme="blue-sky"] :is(.icon-btn:not(.mini),.dock-btn,.logo-ic,.group-chip) .ic,
-html[data-theme="blue-sky"] .roster-card>.ic{stroke:currentColor;filter:none}
+html[data-theme="blue-sky"] .roster-card>.ic{stroke:currentColor}
 html[data-icons="neon-glow"] :is(.icon-btn,.dock-btn,.logo-ic) .ic{stroke:currentColor}
 
 /* ===== Liquid press (classes set by js/core/fx.js) ===== */
@@ -213,34 +219,9 @@ html[data-icons="neon-glow"] :is(.icon-btn,.dock-btn,.logo-ic) .ic{stroke:curren
 }
 .vbtn[aria-pressed="true"]{scale:1.04}
 .vbtn[aria-pressed="true"].lg-down{scale:.97}
-:is(.btn,.icon-btn,.dock-btn,.group-chip,.pill,.vbtn,.opt,.step).lg-down{--rim-o:1;--rim-w:1.8px;filter:brightness(1.12) saturate(1.1)}
-:is(.game-card,.roster-card).lg-down{filter:brightness(1.08)}
-
-/* Chromatic ripple, clipped to the pressed control. */
-.lg-ripple-clip{position:fixed;z-index:2147483646;pointer-events:none;overflow:hidden;contain:strict;isolation:isolate}
-.lg-ripple{
-  position:absolute;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
-  transform:translate(-50%,-50%) scale(0);will-change:transform,opacity;
-  background:
-    radial-gradient(circle,rgba(255,255,255,.42) 0%,rgba(var(--rr,167,139,250),.24) 34%,transparent 58%),
-    radial-gradient(circle,transparent 58%,rgba(255,64,190,.55) 61%,transparent 64.5%),
-    radial-gradient(circle,transparent 61.5%,rgba(255,255,255,.65) 64%,transparent 66.5%),
-    radial-gradient(circle,transparent 64%,rgba(56,214,255,.6) 67%,transparent 70.5%);
-  animation:lg-ripple .8s cubic-bezier(.15,.7,.25,1) forwards;
-}
-html[data-theme="blue-sky"] .lg-ripple{
-  mix-blend-mode:normal;
-  background:
-    radial-gradient(circle,rgba(255,255,255,.55) 0%,rgba(147,197,253,.2) 34%,transparent 58%),
-    radial-gradient(circle,transparent 58%,rgba(236,72,153,.35) 61%,transparent 64.5%),
-    radial-gradient(circle,transparent 61.5%,rgba(255,255,255,.9) 64%,transparent 66.5%),
-    radial-gradient(circle,transparent 64%,rgba(14,165,233,.45) 67%,transparent 70.5%);
-}
-@keyframes lg-ripple{
-  0%{transform:translate(-50%,-50%) scale(0);opacity:1}
-  65%{opacity:.9}
-  100%{transform:translate(-50%,-50%) scale(1);opacity:0}
-}
+/* No filter on press: a filter on a glass control makes the browser repaint it (and its icons) as a
+   rectangular layer for a moment. The rim lights up instead. */
+:is(.btn,.icon-btn,.dock-btn,.group-chip,.pill,.vbtn,.opt,.step,.game-card,.roster-card).lg-down{--rim-o:1;--rim-w:1.6px}
 
 /* ===== Header ===== */
 .top{padding:6px 2px 16px}
@@ -345,7 +326,7 @@ html[data-icons="liquid-3d"] .gc-orb,
     0 0 44px -10px rgba(var(--rgb),.85);
 }
 html[data-icons="liquid-3d"] .gc-orb{width:clamp(62px,20vw,84px);animation:lg-bob 5s ease-in-out infinite;animation-delay:calc(var(--i,0) * -.7s)}
-html[data-icons="liquid-3d"] .gc-orb .gi{width:50%;height:50%;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+html[data-icons="liquid-3d"] .gc-orb .gi{width:50%;height:50%}
 /* A soft coloured contact shadow beneath each sphere. */
 html[data-icons="liquid-3d"] .gc-orb::after{
   content:"";position:absolute;left:16%;right:16%;bottom:-16%;height:12%;border-radius:50%;pointer-events:none;
@@ -472,18 +453,14 @@ html[data-theme="deep-space"] .pt-text{
 .portal-hint{font-family:var(--font-display);font-weight:700;font-stretch:90%;letter-spacing:.3em}
 .portal-aura{opacity:.75;mix-blend-mode:screen}
 html[data-theme="blue-sky"] .portal-aura{mix-blend-mode:normal}
-.portal-ripple{
-  border:0;
-  background:
-    radial-gradient(circle,transparent 56%,rgba(255,64,190,.55) 60%,transparent 64%),
-    radial-gradient(circle,transparent 60%,rgba(255,255,255,.85) 63.5%,transparent 67%),
-    radial-gradient(circle,transparent 63%,rgba(56,214,255,.6) 67%,transparent 71%);
-  box-shadow:none;
-}
+/* Entering the hub: one soft bloom of light instead of hard rings. */
+html[data-theme] .portal-ripple{border:0;box-shadow:none;background:radial-gradient(circle,rgba(255,255,255,.2),rgba(196,181,253,.1) 40%,transparent 70%)}
+html[data-theme] .portal-ripple.r2,html[data-theme] .portal-ripple.r3{display:none}
+html[data-theme] .screen.entering .portal-ripple{animation:lg-bloom .9s var(--out) forwards}
+@keyframes lg-bloom{0%{opacity:.8;transform:scale(.3)}100%{opacity:0;transform:scale(6)}}
 
 /* ===== Accessibility / motion ===== */
 @media (prefers-reduced-motion:reduce){
   .btn-primary,html[data-icons="liquid-3d"] .gc-orb,html[data-icons="liquid-3d"] .gc-orb::after{animation:none}
   .games-grid>.game-card{animation-duration:.01s}
-  .lg-ripple{display:none}
 }

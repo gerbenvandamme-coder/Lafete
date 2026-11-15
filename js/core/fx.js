@@ -3,7 +3,6 @@
 
   /* LaFête interaction effects for every control in the app:
      - liquid press: the control sinks towards the finger and springs back with a jelly wobble;
-     - chromatic ripple: an RGB-split wave clipped to the control's own shape;
      - 3D tilt + moving glare on cards (fine pointers only);
      - one global light angle (--lg-light) that the chromatic glass rims follow.
      Everything is transform/opacity only, and skipped for reduced motion. */
@@ -12,14 +11,12 @@
   const PRESSABLE = 'button, [role="button"], a[href], .btn, .icon-btn, .game-card, .roster-card, .opt, .pill, .step, .vbtn, .strip, .dock-btn, .group-chip';
   const SKIP = '.portal-title, .hold-btn, .switch, input, textarea, select';
   const TILT = '.game-card, .roster-card, .opt';
-  const MAX_RIPPLES = 5;
-  const TILT_DEG = 9;
+  const TILT_DEG = 6;
 
   const reduced = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
   const finePointer = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)') : { matches: false };
 
   let downEl = null;
-  let ripples = 0;
 
   function pressable(target) {
     if (!target || !target.closest) return null;
@@ -27,44 +24,6 @@
     const el = target.closest(PRESSABLE);
     if (!el || el.disabled) return null;
     return el;
-  }
-
-  /* ----- chromatic ripple, clipped to the control ----- */
-  function ripple(el, x, y) {
-    if (ripples >= MAX_RIPPLES) return;
-    const r = el.getBoundingClientRect();
-    if (r.width < 8 || r.height < 8) return;
-    const cs = getComputedStyle(el);
-    const clip = document.createElement('i');
-    clip.className = 'lg-ripple-clip';
-    clip.setAttribute('aria-hidden', 'true');
-    clip.style.left = r.left + 'px';
-    clip.style.top = r.top + 'px';
-    clip.style.width = r.width + 'px';
-    clip.style.height = r.height + 'px';
-    clip.style.borderRadius = cs.borderRadius;
-    const lx = x - r.left;
-    const ly = y - r.top;
-    const reach = Math.hypot(Math.max(lx, r.width - lx), Math.max(ly, r.height - ly)) * 2;
-    const wave = document.createElement('i');
-    wave.className = 'lg-ripple';
-    wave.style.left = lx + 'px';
-    wave.style.top = ly + 'px';
-    wave.style.width = wave.style.height = reach + 'px';
-    clip.appendChild(wave);
-    const rgb = cs.getPropertyValue('--rgb').trim();
-    if (rgb) clip.style.setProperty('--rr', rgb);
-    document.body.appendChild(clip);
-    ripples++;
-    let done = false;
-    const end = () => {
-      if (done) return;
-      done = true;
-      ripples--;
-      clip.remove();
-    };
-    wave.addEventListener('animationend', end, { once: true });
-    setTimeout(end, 1200);
   }
 
   /* ----- liquid press ----- */
@@ -81,7 +40,6 @@
     if (!e.isTrusted || (e.button && e.button !== 0)) return;
     const el = pressable(e.target);
     if (!el) return;
-    const off = el.getAttribute('aria-disabled') === 'true';
     if (!reduced.matches) {
       const r = el.getBoundingClientRect();
       // The control sinks towards the finger: origin at the opposite side of the tap.
@@ -92,7 +50,6 @@
       el.classList.remove('lg-up');
       el.classList.add('lg-down');
       downEl = el;
-      if (!off) ripple(el, e.clientX, e.clientY);
     }
   }, { capture: true, passive: true });
   document.addEventListener('pointerup', release, true);

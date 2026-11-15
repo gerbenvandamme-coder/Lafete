@@ -18,7 +18,7 @@
   ];
 
   const THEMES = [
-    { id: 'liquid-glass', label: 'LIQUID GLASS', swatch: 'sw-liquid', color: '#030306', scheme: 'dark' },
+    { id: 'liquid-glass', label: 'FEESTAVOND', swatch: 'sw-liquid', color: '#030306', scheme: 'dark' },
     { id: 'party-burst', label: 'PARTY BURST', swatch: 'sw-party', color: '#07030f', scheme: 'dark' },
     { id: 'blue-sky', label: 'BLAUWE LUCHT', swatch: 'sw-sky', color: '#dbeafe', scheme: 'light' },
     { id: 'deep-space', label: 'DIEPE RUIMTE', swatch: 'sw-space', color: '#020208', scheme: 'dark' }
