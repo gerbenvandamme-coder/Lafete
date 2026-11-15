@@ -24,6 +24,7 @@
     { id: 'deep-space', label: 'DIEPE RUIMTE', swatch: 'sw-space', color: '#020208', scheme: 'dark' }
   ];
   const ICON_PACKS = [
+    { id: 'liquid-3d', label: 'LIQUID 3D' },
     { id: 'vision-minimal', label: 'MINIMAL' },
     { id: 'neon-glow', label: 'NEON GLOW' },
     { id: 'playful-pop', label: 'PLAYFUL POP' }
@@ -47,7 +48,7 @@
   }
 
   let theme = readPref(THEME_KEY, THEMES, 'liquid-glass');
-  let icons = readPref(ICON_KEY, ICON_PACKS, 'vision-minimal');
+  let icons = readPref(ICON_KEY, ICON_PACKS, 'liquid-3d');
   let calm = true;
 
   /* ===== Deep-space starfield (canvas, 3 parallax layers + dust + shooting stars) ===== */
@@ -303,11 +304,20 @@
 
   // Icon resolver: returns an <svg> for a game in the requested icon style.
   function renderGameIcon(gameKey, style) {
-    const pack = ICON_PACKS.some((p) => p.id === style) ? style : 'vision-minimal';
+    const pack = ICON_PACKS.some((p) => p.id === style) ? style : 'liquid-3d';
     const g = GLYPHS[gameKey];
     if (!g) return LG.icon('star');
     const svg = svgEl('svg', { 'class': 'gi gi-' + pack, viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' });
-    if (pack === 'neon-glow') {
+    if (pack === 'liquid-3d') {
+      // Embossed glyph: a soft shadow copy underneath, then the lit strokes on top.
+      const sh = svgEl('g', { 'class': 'l3-sh', transform: 'translate(.5 1.1)' });
+      sh.appendChild(svgEl('path', { d: g.a }));
+      sh.appendChild(svgEl('path', { d: g.b }));
+      svg.appendChild(sh);
+      if (g.fill) svg.appendChild(svgEl('path', { d: g.fill, 'class': 'l3-fill' }));
+      svg.appendChild(svgEl('path', { d: g.a, 'class': 'l3-a' }));
+      svg.appendChild(svgEl('path', { d: g.b, 'class': 'l3-b' }));
+    } else if (pack === 'neon-glow') {
       svg.appendChild(svgEl('path', { d: g.a, 'class': 'n-a' }));
       svg.appendChild(svgEl('path', { d: g.b, 'class': 'n-b' }));
     } else if (pack === 'playful-pop') {

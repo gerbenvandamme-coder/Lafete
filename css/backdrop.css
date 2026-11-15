@@ -4,7 +4,7 @@
 /* Procedural refraction and bevel highlights for glass surfaces; the SVG filter is inline in index.html. */
 html[data-theme] .glass,html[data-theme] .glass-lite{
   -webkit-backdrop-filter:blur(20px) saturate(170%);
-  backdrop-filter:blur(20px) saturate(170%) url(#liquid-glass-warp);
+  backdrop-filter:blur(20px) saturate(170%);
   border-color:rgba(255,255,255,.16);
   border-top-color:rgba(255,255,255,.42);
   border-left-color:rgba(255,255,255,.3);

@@ -324,15 +324,7 @@
     if (buttons.indexOf(t) !== -1) return; // the mute button plays its own confirmation tap
     if (t.closest('.hold-btn')) return;    // hold-to-reveal already plays the shutter sound
     playTap(t.matches(FIRM) ? 'select' : 'soft');
-    if (!keyboard && t.closest('.glass, .glass-lite')) {
-      const ripple = document.createElement('i');
-      ripple.className = 'glass-ripple';
-      ripple.setAttribute('aria-hidden', 'true');
-      ripple.style.setProperty('--ripple-x', e.clientX + 'px');
-      ripple.style.setProperty('--ripple-y', e.clientY + 'px');
-      document.body.appendChild(ripple);
-      ripple.addEventListener('animationend', function () { ripple.remove(); }, { once: true });
-    }
+    // The liquid press + ripple lives in js/core/fx.js.
   }
 
   document.addEventListener('pointerdown', function (e) { playFeedback(e, false); }, { capture: true, passive: true });

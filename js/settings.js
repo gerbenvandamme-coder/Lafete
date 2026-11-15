@@ -13,7 +13,7 @@
       <p class="set-sec" id="setThemeLbl">THEMA</p>
       <div class="opt-grid" id="themeGrid" role="radiogroup" aria-labelledby="setThemeLbl"></div>
       <p class="set-sec" id="setIconLbl">ICOONSTIJL</p>
-      <div class="opt-grid three" id="iconGrid" role="radiogroup" aria-labelledby="setIconLbl"></div>
+      <div class="opt-grid" id="iconGrid" role="radiogroup" aria-labelledby="setIconLbl"></div>
       <button type="button" class="btn btn-primary" data-close="m-settings">KLAAR</button>
     </div>
   </div>`;
