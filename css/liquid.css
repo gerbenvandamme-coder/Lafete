@@ -20,7 +20,7 @@
   --glass-spec:rgba(255,255,255,.2);
   --glass-sheen:rgba(255,255,255,.08);
   --glass-border:rgba(255,255,255,.1);
-  --glass-blur:24px;
+  --glass-blur:18px;
   --glass-shadow:
     inset 0 1px 0 rgba(255,255,255,.32),
     inset 0 -1px 0 rgba(255,255,255,.05),
@@ -111,6 +111,8 @@ html.has-webgl[data-theme="deep-space"] .fx-nebula{opacity:.6}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 html[data-theme="blue-sky"] .grain{opacity:.05;mix-blend-mode:soft-light}
+/* With WebGL the shader already dithers; a full-screen blend layer over a moving canvas costs a pass per frame. */
+html.has-webgl .grain{display:none}
 
 /* Screens are fixed (same box as #app). With position:absolute inside the fixed #app, Chromium's glass
    did not blur the WebGL backdrop at all; as fixed layers it does. */
@@ -125,11 +127,11 @@ html[data-theme] .glass-lite{
     radial-gradient(130% 90% at 12% -12%,var(--glass-spec) 0%,transparent 42%),
     linear-gradient(165deg,var(--glass-sheen),rgba(255,255,255,.012) 42%,rgba(255,255,255,.045) 100%);
   border:1px solid var(--glass-border);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(190%) brightness(1.06);
-  backdrop-filter:blur(var(--glass-blur)) saturate(190%) brightness(1.06);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter:blur(var(--glass-blur)) saturate(180%);
   box-shadow:var(--glass-shadow);
 }
-html[data-theme] .glass-lite{--glass-blur:18px}
+html[data-theme] .glass-lite{--glass-blur:14px}
 /* Chromium keeps painting the blur of composited glass inside visibility:hidden screens
    (a ghost rectangle over the active screen); hidden screens drop their backdrop filter. */
 html[data-theme] .screen:not(.active) :is(.glass,.glass-lite,.btn){-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -149,7 +151,7 @@ html .game-card::before{
   transition:opacity .4s var(--out);
 }
 @media (hover:hover) and (pointer:fine){
-  :is(.btn,.game-card,.roster-card,.opt,.icon-btn,.dock-btn,.group-chip,.strip,.vbtn):hover{--rim-o:1;--rim-w:1.6px}
+  :is(.btn,.game-card,.roster-card,.opt,.icon-btn,.dock-btn,.group-chip,.strip,.vbtn):hover{--rim-o:1}
 }
 
 /* ===== Buttons ===== */
@@ -175,9 +177,7 @@ html[data-theme] .btn-primary{
     inset -4px 0 8px -5px rgba(90,230,255,.8),
     0 18px 38px -16px color-mix(in srgb,var(--primary-a) 80%,transparent),
     0 6px 14px -6px rgba(0,0,0,.4);
-  animation:lg-flow 7s ease-in-out infinite alternate;
 }
-@keyframes lg-flow{from{background-position:0 0,0 0,0% 0}to{background-position:0 0,0 0,100% 0}}
 html[data-theme] .btn-danger{
   color:#fff;text-shadow:0 1px 12px rgba(60,0,20,.45);
   background:
@@ -192,7 +192,6 @@ html[data-theme] .btn-danger{
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),rgba(180,240,255,.35),transparent);
   animation-duration:4.6s;
 }
-html.fx-paused .btn-primary{animation-play-state:paused}
 
 .icon-btn,.dock-btn{border-radius:20px}
 .logo-ic{border-radius:16px}
@@ -409,7 +408,7 @@ html[data-theme] .opt[aria-checked="true"]{--rim-o:1;--rim-w:2px;box-shadow:var(
 /* ===== Sheets, modals, toast ===== */
 .modal{background:rgba(3,2,10,.42);-webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%)}
 html[data-theme] .sheet.glass{
-  --glass-blur:40px;border-radius:34px;
+  --glass-blur:26px;border-radius:34px;
   background-color:rgba(18,14,38,.5);
   background-image:radial-gradient(120% 60% at 15% -10%,rgba(255,255,255,.2),transparent 45%),linear-gradient(170deg,rgba(255,255,255,.08),rgba(255,255,255,.01) 50%,rgba(120,180,255,.05));
 }
@@ -461,6 +460,6 @@ html[data-theme] .screen.entering .portal-ripple{animation:lg-bloom .9s var(--ou
 
 /* ===== Accessibility / motion ===== */
 @media (prefers-reduced-motion:reduce){
-  .btn-primary,html[data-icons="liquid-3d"] .gc-orb,html[data-icons="liquid-3d"] .gc-orb::after{animation:none}
+  html[data-icons="liquid-3d"] .gc-orb,html[data-icons="liquid-3d"] .gc-orb::after{animation:none}
   .games-grid>.game-card{animation-duration:.01s}
 }

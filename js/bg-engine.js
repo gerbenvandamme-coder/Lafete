@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
    Layer 1: full-screen aurora shader (soft colour pools), with disco light specks thrown by the
             mirror ball, slow stage beams and a gentle glow where you tap.
    Layer 2: a mirror ball (procedural tile texture, real reflections) half outside the frame,
-            latex balloons drifting upward on strings near the edges, and tumbling confetti.
+            bunches of shiny balloons (latex + one foil each) bobbing near the edges, and tumbling confetti.
             Depth fog sinks everything into the background so it never competes with the UI.
    Each theme picks its own mix (deep space shows no props: the CSS planets are its scenery).
    While a game is running (html.fx-paused) the scene slows down and renders at a lower frame rate. */
@@ -15,39 +15,43 @@ const MAX_FRAME_DT = 0.05;
 const THEME_LERP_RATE = 2.4;
 const PARALLAX_EASE = 2;
 const REDUCED_MOTION_SPEED = 0.12;
-const MAX_PIXEL_RATIO = 1.75;
+// The backdrop sits blurred behind glass, so it renders at (at most) 1 device pixel per CSS pixel,
+// and drops further when the device cannot keep up (see adaptQuality).
+const QUALITY_STEPS = [1, 0.8, 0.65, 0.5];
+const SLOW_FRAME_MS = 22;
 const CAMERA_FOV = 40;
 const CAMERA_Z = 8;
 const TAU = Math.PI * 2;
 const DEFAULT_THEME = 'liquid-glass';
 const BOKEH_COUNT = 40;
 const CONFETTI_MAX = 90;
-const BALLOON_MAX = 4;
+const CLUSTER_MAX = 2;
+const CLUSTER_SIZE = 3;
 const GLOWS = 3;
 const PAUSED_FRAME_MS = 1000 / 24;
 const LINEAR = THREE.LinearSRGBColorSpace;
 
 /* base/aurora: shader colours. disco: mirror ball + light specks. beams: stage beams.
-   balloons: colours (count = length). confetti: count + colours. */
+   balloons: colours shared by the balloon bunches ([] = none). confetti: count + colours. */
 const PALETTES = {
   'liquid-glass': {
     base: '#07051a', aurora: ['#2b1670', '#0a4f6e', '#6b1450', '#1a2f8f'], intensity: 0.85,
     disco: 1, beams: 0.35,
-    balloons: ['#8b5cf6', '#ec4899', '#22d3ee'],
+    balloons: ['#a855f7', '#ff3fa4', '#22d3ee', '#ffc94d', '#ff6a3d', '#7c5cff'],
     confetti: 26, confettiColors: ['#f0abfc', '#a5b4fc', '#67e8f9', '#fde68a', '#f9a8d4'],
     bokeh: ['#ffffff', '#c4b5fd', '#67e8f9'], lights: ['#ec4899', '#22d3ee'], fogNear: 9, fogFar: 17
   },
   'party-burst': {
     base: '#0b0316', aurora: ['#6e0b4b', '#2f5206', '#4c1d95', '#7a3a04'], intensity: 1,
     disco: 1, beams: 1,
-    balloons: ['#ff2daa', '#b6ff00', '#ffb020', '#8f3dff'],
+    balloons: ['#ff2daa', '#b6ff00', '#ffb020', '#8f3dff', '#22d3ee', '#ff5e3a'],
     confetti: 50, confettiColors: ['#b6ff00', '#ff2daa', '#ffb020', '#8f3dff', '#22d3ee'],
     bokeh: ['#ff2daa', '#b6ff00', '#ffb020'], lights: ['#ff2daa', '#b6ff00'], fogNear: 9, fogFar: 18
   },
   'blue-sky': {
     base: '#cfe3ff', aurora: ['#a8ccff', '#eef7ff', '#c3cffd', '#fff3cf'], intensity: 0.8,
     disco: 0, beams: 0,
-    balloons: ['#f472b6', '#60a5fa', '#facc15', '#34d399'],
+    balloons: ['#ff5fa8', '#3b9cff', '#ffcf33', '#2fd38f', '#a77bff', '#ff8a3d'],
     confetti: 18, confettiColors: ['#f472b6', '#60a5fa', '#facc15', '#34d399', '#ffffff'],
     bokeh: ['#ffffff', '#ffffff', '#fde68a'], lights: ['#ffffff', '#fde68a'], fogNear: 8, fogFar: 19
   },
@@ -140,7 +144,7 @@ void main() {
 
   // Light specks thrown by the mirror ball, gliding across the room.
   if (uDisco > 0.001) {
-    for (int i = 0; i < 18; i++) {
+    for (int i = 0; i < 12; i++) {
       float fi = float(i);
       float h1 = hash(vec2(fi, 1.7));
       float h2 = hash(vec2(fi, 9.3));
@@ -152,7 +156,7 @@ void main() {
       float spot = exp(-dot(d, d) / (r * r));
       float tw = 0.55 + 0.45 * sin(uTime * (1.5 + h1 * 2.0) + fi * 3.0);
       vec3 sc = mix(vec3(1.0), mix(uC1, uC2, h3) * 2.2, 0.45);
-      col += sc * spot * tw * 0.22 * uDisco;
+      col += sc * spot * tw * 0.26 * uDisco;
     }
     // Soft halo around the ball itself.
     vec2 bd = (uv - uBall) * vec2(asp, 1.0);
@@ -243,10 +247,10 @@ function makeDiscoTexture(cols, rows) {
 // Balloon silhouette (bottom to top) spun into a lathe.
 function makeBalloonGeometry() {
   const pts = [
-    [0.0, -1.02], [0.07, -1.0], [0.22, -0.88], [0.42, -0.64], [0.58, -0.34], [0.66, -0.04],
-    [0.67, 0.24], [0.61, 0.52], [0.48, 0.76], [0.3, 0.92], [0.12, 0.99], [0.0, 1.0]
+    [0.0, -1.0], [0.06, -0.98], [0.2, -0.9], [0.4, -0.72], [0.6, -0.46], [0.74, -0.16],
+    [0.79, 0.14], [0.77, 0.42], [0.67, 0.67], [0.5, 0.86], [0.27, 0.97], [0.0, 1.0]
   ].map((p) => new THREE.Vector2(p[0], p[1]));
-  return new THREE.LatheGeometry(pts, 48);
+  return new THREE.LatheGeometry(pts, 32);
 }
 
 function init() {
@@ -255,7 +259,7 @@ function init() {
 
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: 'high-performance', stencil: false });
   } catch (err) {
     // No WebGL: the CSS backdrop stays visible.
     canvas.hidden = true;
@@ -332,35 +336,64 @@ function init() {
   scene.add(disco);
   const discoState = { presence: 0, target: 0, size: 1 };
 
-  /* ----- layer 2b: balloons ----- */
+  /* ----- layer 2b: balloon bunches ----- */
+  // Each bunch: three balloons (one foil) tied together, strings meeting at one knot below.
   const balloonGeo = makeBalloonGeometry();
-  const knotGeo = new THREE.ConeGeometry(0.075, 0.12, 14);
+  const knotGeo = new THREE.ConeGeometry(0.08, 0.13, 10);
+  const SLOTS = [[-0.62, 0.05, 0.1, -0.22], [0.6, 0.28, -0.25, 0.2], [0.0, 0.95, 0.05, 0.04]];
+  const TIE = new THREE.Vector3(0.05, -3.1, 0);
   const balloons = [];
-  for (let i = 0; i < BALLOON_MAX; i++) {
-    const mat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff, roughness: 0.32, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.12,
-      sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xffffff), envMapIntensity: 0.9
-    });
+  for (let i = 0; i < CLUSTER_MAX; i++) {
     const group = new THREE.Group();
-    const body = new THREE.Mesh(balloonGeo, mat);
-    const knot = new THREE.Mesh(knotGeo, mat);
-    knot.position.y = -1.07;
-    // A curly string hanging down.
-    const pts = [];
-    for (let k = 0; k <= 24; k++) {
-      const s = k / 24;
-      pts.push(new THREE.Vector3(Math.sin(s * 9 + i) * 0.06 * s, -1.12 - s * 2.4, Math.cos(s * 7) * 0.03));
+    const items = [];
+    for (let j = 0; j < CLUSTER_SIZE; j++) {
+      const foil = j === 1;
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0xffffff, roughness: foil ? 0.16 : 0.22, metalness: foil ? 0.85 : 0.05, envMapIntensity: foil ? 1.5 : 1.15,
+        fog: false // keep the balloon colours bright instead of muddy
+      });
+      const holder = new THREE.Group();
+      const [sx, sy, sz, tilt] = SLOTS[j];
+      holder.position.set(sx, sy, sz);
+      holder.rotation.z = tilt;
+      const body = new THREE.Mesh(balloonGeo, mat);
+      body.scale.set(1, 1.08, 1);
+      const knot = new THREE.Mesh(knotGeo, mat);
+      knot.position.y = -1.06;
+      holder.add(body, knot);
+      group.add(holder);
+      // Curly ribbon from this balloon's knot down to the shared tie point.
+      const from = new THREE.Vector3(sx + Math.sin(tilt) * 1.12, sy - Math.cos(tilt) * 1.12, sz);
+      const pts = [];
+      for (let k = 0; k <= 28; k++) {
+        const t = k / 28;
+        const pnt = from.clone().lerp(TIE, t);
+        pnt.x += Math.sin(t * 14 + j * 2) * 0.05 * (1 - t);
+        pts.push(pnt);
+      }
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 })
+      );
+      group.add(line);
+      items.push({ holder: holder, mat: mat, line: line, tint: new THREE.Color(), tilt: tilt, phase: rand(0, TAU) });
     }
-    const string = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })
+    // A short ribbon tail with a bow-like curl below the tie.
+    const tail = [];
+    for (let k = 0; k <= 20; k++) {
+      const t = k / 20;
+      tail.push(new THREE.Vector3(TIE.x + Math.sin(t * 10) * 0.08, TIE.y - t * 1.4, Math.cos(t * 8) * 0.04));
+    }
+    const tailLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(tail),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
     );
-    group.add(body, knot, string);
+    group.add(tailLine);
     group.visible = false;
     scene.add(group);
     balloons.push({
-      group: group, mat: mat, string: string, tint: new THREE.Color(), placed: false,
-      x: 0, y: 0, z: rand(-5.5, -3), speed: rand(0.12, 0.2), phase: rand(0, TAU), size: rand(0.42, 0.55),
+      group: group, items: items, tail: tailLine, placed: false,
+      x: 0, y: 0, z: i === 0 ? -2.6 : -3.4, speed: rand(0.1, 0.14), phase: rand(0, TAU), size: i === 0 ? 0.5 : 0.44,
       vx: 0, vy: 0, presence: 0, target: 0, lane: i
     });
   }
@@ -408,6 +441,23 @@ function init() {
     bokehPhase[i] = rand(0, TAU);
   }
 
+  /* ----- adaptive quality ----- */
+  // Watch real frame times; when the device struggles, render the backdrop at a lower resolution.
+  let quality = 0;
+  let slowFrames = 0;
+  let sampled = 0;
+  function adaptQuality(frameMs) {
+    sampled++;
+    if (frameMs > SLOW_FRAME_MS) slowFrames++;
+    if (sampled < 90) return;
+    if (slowFrames > 30 && quality < QUALITY_STEPS.length - 1) {
+      quality++;
+      resize();
+    }
+    sampled = 0;
+    slowFrames = 0;
+  }
+
   /* ----- layout ----- */
   const view = { w: 1, h: 1 };
   function halfSizeAt(z) {
@@ -433,9 +483,9 @@ function init() {
     const portrait = camera.aspect < 1;
     // Lanes keep balloons near the left/right edges, away from the content column.
     const side = b.lane % 2 === 0 ? -1 : 1;
-    const edge = portrait ? rand(0.62, 0.95) : rand(0.5, 0.9);
+    const edge = portrait ? rand(0.78, 0.92) : rand(0.55, 0.8);
     b.x = side * edge * hs.x;
-    b.y = fromBottom ? -hs.y - 1.6 - rand(0, 2.5) : rand(-hs.y, hs.y);
+    b.y = fromBottom ? -hs.y - 1.4 - rand(0, 1.5) : (b.lane === 0 ? -0.35 : 0.3) * hs.y;
     b.placed = true;
   }
 
@@ -462,7 +512,7 @@ function init() {
   function resize() {
     const w = Math.max(1, window.innerWidth);
     const h = Math.max(1, window.innerHeight);
-    const pr = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+    const pr = Math.min(window.devicePixelRatio || 1, 1) * QUALITY_STEPS[quality];
     view.w = w; view.h = h;
     renderer.setPixelRatio(pr);
     renderer.setSize(w, h, false);
@@ -496,11 +546,15 @@ function init() {
     scene.fog.near = palette.fogNear;
     scene.fog.far = palette.fogFar;
 
+    const pal = palette.balloons;
     balloons.forEach((b, i) => {
-      const hex = palette.balloons[i];
-      b.target = hex ? 1 : 0;
-      if (hex) b.tint.set(hex);
-      b.string.material.color.set(id === 'blue-sky' ? '#64748b' : '#ffffff');
+      b.target = pal.length ? 1 : 0;
+      const ribbon = id === 'blue-sky' ? '#7c8db5' : '#ffffff';
+      b.items.forEach((it, j) => {
+        if (pal.length) it.tint.set(pal[(i * CLUSTER_SIZE + j) % pal.length]);
+        it.line.material.color.set(ribbon);
+      });
+      b.tail.material.color.set(ribbon);
     });
 
     confetti.count = palette.confetti;
@@ -527,7 +581,7 @@ function init() {
       lightB.color.copy(lightTarget[1]);
       scene.fog.color.copy(fogTarget);
       discoState.presence = discoState.target;
-      balloons.forEach((b) => { b.presence = b.target; b.mat.color.copy(b.tint); });
+      balloons.forEach((b) => { b.presence = b.target; b.items.forEach((it) => it.mat.color.copy(it.tint)); });
     }
   }
 
@@ -544,7 +598,7 @@ function init() {
     discoState.presence += (discoState.target - discoState.presence) * k;
     balloons.forEach((b) => {
       b.presence += (b.target - b.presence) * k;
-      b.mat.color.lerp(b.tint, k);
+      b.items.forEach((it) => it.mat.color.lerp(it.tint, k));
     });
   }
 
@@ -635,12 +689,18 @@ function init() {
       b.x += b.vx * dt;
       b.y += b.speed * step + b.vy * dt;
       const hs = halfSizeAt(b.z);
-      if (b.y > hs.y + 1.6) placeBalloon(b, true);
-      const sway = Math.sin(time * 0.5 + b.phase);
-      b.group.position.set(b.x + sway * 0.18, b.y, b.z);
-      b.group.rotation.z = sway * 0.12 - b.vx * 0.15;
-      b.group.rotation.y = time * 0.15 + b.phase;
+      if (b.y > hs.y + 1.4) placeBalloon(b, true);
+      const sway = Math.sin(time * 0.55 + b.phase);
+      // Bouncy bob: the bunch rises in little lifts, like it is tugging at its ribbon.
+      const bob = Math.sin(time * 1.3 + b.phase) * 0.08;
+      b.group.position.set(b.x + sway * 0.2, b.y + bob, b.z);
+      b.group.rotation.z = sway * 0.08 - b.vx * 0.15;
+      b.group.rotation.y = Math.sin(time * 0.25 + b.phase) * 0.5;
       b.group.scale.setScalar(b.size * b.presence);
+      b.items.forEach((it) => {
+        it.holder.rotation.z = it.tilt + Math.sin(time * 1.1 + it.phase) * 0.06;
+        it.holder.rotation.y += step * 0.3;
+      });
     });
 
     // Confetti tumbles down and sways.
@@ -683,6 +743,7 @@ function init() {
     rafId = 0;
     const paused = root.classList.contains('fx-paused');
     if (!paused || now - lastRender >= PAUSED_FRAME_MS) {
+      if (!paused && last) adaptQuality(now - last);
       const dt = clamp((now - last) / 1000, 0, MAX_FRAME_DT);
       last = now;
       lastRender = now;
