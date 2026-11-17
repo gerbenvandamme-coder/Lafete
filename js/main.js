@@ -16,5 +16,5 @@
   LG.hub.build();
   LG.games.forEach((g) => g.mount());
   LG.hub.render();
-  LG.ui.show('hub');
+  LG.ui.show('welcome');
 })();

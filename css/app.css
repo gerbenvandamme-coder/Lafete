@@ -321,3 +321,75 @@ button,input{font-family:var(--font)}
 .role-orb .ii{width:104px;height:104px;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(0,0,0,.45))}
 .icon-btn:focus-visible,.sys-btn:focus-visible{outline:2px solid rgba(255,255,255,.6);outline-offset:3px}
 .dil-q b{color:var(--sun)}
+
+/* ===== v2: more colour, wider screens, entrance ===== */
+:root{--bg:#11121b;--bg-2:#1a1c27}
+.blob.b1{background:radial-gradient(circle,rgba(255,143,184,.38),transparent 62%)}
+.blob.b2{background:radial-gradient(circle,rgba(108,184,255,.36),transparent 62%)}
+.blob.b3{background:radial-gradient(circle,rgba(255,209,102,.3),transparent 62%)}
+.dock{background:linear-gradient(to top,rgba(17,18,27,.96) 40%,rgba(17,18,27,0))}
+.sheet.glass{background:rgba(28,30,44,.92)}
+.toast{background:rgba(28,30,44,.95)}
+.today-cta{background:var(--peach)}
+.prow-r.on{background:rgba(108,184,255,.14);border-color:rgba(108,184,255,.6)}
+.prow-r.on .check{background:var(--sky);border-color:var(--sky)}
+.pill[aria-pressed="true"]{background:var(--sun)}
+.switch[aria-pressed="true"]{background:var(--pink)}
+.today-stack .pav{border-color:#20222f}
+
+/* Game cards: colour wash + glow inside the rounded card (no clipped child), big floating icon */
+.gcard{background:
+  radial-gradient(120% 70% at 100% 0%,color-mix(in srgb,var(--c) 42%,transparent),transparent 60%),
+  radial-gradient(90% 60% at 0% 100%,color-mix(in srgb,var(--c) 18%,transparent),transparent 70%),
+  linear-gradient(170deg,rgba(255,255,255,.09),rgba(255,255,255,.02));
+  border-color:color-mix(in srgb,var(--c) 45%,rgba(255,255,255,.15))}
+.gcard .halo{display:none}
+.gico{width:clamp(150px,30vh,240px);height:clamp(150px,30vh,240px);align-self:center;margin:6px 0 0;animation:float 5s ease-in-out infinite}
+.gname{color:var(--c);text-align:center;font-size:clamp(2.2rem,6vh,3.2rem)}
+.gtag{text-align:center;align-self:center;max-width:34ch}
+.gmeta{align-self:center}
+.gcard{align-items:stretch}
+
+/* iPad / desktop: the hub fills the screen */
+@media (min-width:700px){
+  #s-hub .wrap{max-width:min(1100px,94vw)}
+  .gcard{padding:22px}
+  .gplay{max-width:520px;align-self:center}
+}
+
+/* Entrance screen */
+#s-welcome{padding:0}
+.welcome{appearance:none;border:0;background:none;color:var(--ink);width:100%;height:100%;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;position:relative;overflow:hidden;font:inherit}
+.w-title{display:flex;font-weight:900;font-size:clamp(4rem,22vw,9rem);letter-spacing:-.04em;line-height:1}
+.w-title i{font-style:normal;display:inline-block;animation:wDrop .9s var(--spring) both, wBob 3.2s ease-in-out 1s infinite}
+.w-title i:nth-child(1){color:var(--mint);animation-delay:.05s,1.05s}
+.w-title i:nth-child(2){color:var(--sky);animation-delay:.12s,1.15s}
+.w-title i:nth-child(3){color:var(--peach);animation-delay:.19s,1.25s}
+.w-title i:nth-child(4){color:var(--pink);animation-delay:.26s,1.35s}
+.w-title i:nth-child(5){color:var(--sun);animation-delay:.33s,1.45s}
+.w-title i:nth-child(6){color:var(--lav);animation-delay:.4s,1.55s}
+@keyframes wDrop{0%{transform:translateY(-60px) scale(.6) rotate(-12deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes wBob{0%,100%{transform:none}50%{transform:translateY(-8px) rotate(-3deg)}}
+.w-sub{font-weight:700;font-size:clamp(1rem,4.4vw,1.3rem);color:var(--muted)}
+.w-hint{margin-top:40px;font-weight:800;font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);animation:hintPulse 2.2s ease-in-out infinite}
+@keyframes hintPulse{0%,100%{opacity:.45;transform:none}50%{opacity:1;transform:translateY(5px)}}
+.w-float{position:absolute;inset:0;pointer-events:none}
+.wf{position:absolute;width:clamp(80px,22vw,150px);height:auto;filter:drop-shadow(0 14px 18px rgba(0,0,0,.45));animation:wFloat 6s ease-in-out infinite}
+.wf.f1{left:6%;top:9%;animation-delay:-1s}
+.wf.f2{right:7%;top:15%;animation-delay:-3s}
+.wf.f3{left:9%;bottom:14%;animation-delay:-2s}
+.wf.f4{right:9%;bottom:10%;animation-delay:-4s}
+.wf.f5{left:50%;top:4%;margin-left:-40px;width:clamp(64px,16vw,110px);animation-delay:-5s}
+@keyframes wFloat{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-16px) rotate(6deg)}}
+/* tap: letters burst outward, icons fly off, then the hub springs in */
+#s-welcome.leaving .w-title i{animation:wOut .6s cubic-bezier(.5,-.4,.7,1) forwards}
+#s-welcome.leaving .w-title i:nth-child(odd){--dy:-140px}
+#s-welcome.leaving .w-title i:nth-child(even){--dy:140px}
+@keyframes wOut{to{transform:translateY(var(--dy)) scale(1.6) rotate(25deg);opacity:0}}
+#s-welcome.leaving .wf{animation:wFly .6s cubic-bezier(.5,-.3,.7,1) forwards}
+#s-welcome.leaving .w-sub,#s-welcome.leaving .w-hint{opacity:0;transition:opacity .2s}
+@keyframes wFly{to{transform:scale(2.2) rotate(40deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.w-title i,.wf,.w-hint,.gico{animation:none!important}}
+.gspacer{display:none}
+.gico{margin-top:auto}
+.gplay{margin-top:auto}

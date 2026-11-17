@@ -22,7 +22,20 @@
   LG.gameMeta = (id) => META[id] || { name: id, tag: '', icon: 'lafete', color: '#6fe0a0' };
 
   const HTML = `
-  <section class="screen active" id="s-hub" aria-label="LaFête">
+  <section class="screen active" id="s-welcome" aria-label="Welkom bij LaFête">
+    <button type="button" class="welcome" id="welcomeTap" aria-label="Tik om te beginnen">
+      <span class="w-float" aria-hidden="true">
+        <img class="wf f1" src="${ICON('undercover')}" alt=""><img class="wf f2" src="${ICON('saboteur')}" alt="">
+        <img class="wf f3" src="${ICON('golflengte')}" alt=""><img class="wf f4" src="${ICON('blackstory')}" alt="">
+        <img class="wf f5" src="${ICON('dilemma')}" alt="">
+      </span>
+      <span class="w-title" aria-hidden="true"><i>L</i><i>a</i><i>F</i><i>ê</i><i>t</i><i>e</i></span>
+      <span class="w-sub">Feestspellen voor je vriendengroep</span>
+      <span class="w-hint">Tik ergens om te beginnen</span>
+    </button>
+  </section>
+
+  <section class="screen" id="s-hub" aria-label="LaFête">
     <div class="wrap hub-wrap">
       <header class="top hub-top">
         <h1 class="brand">LaFête</h1>
@@ -119,7 +132,6 @@
       const play = h('button', { type: 'button', class: 'btn btn-primary gplay', onclick: (e) => { e.stopPropagation(); if (i === activeCard) LG.openGame(g.id); else scrollToCard(i); } }, 'Speel ' + m.name);
       const icon = h('img', { class: 'gico', src: ICON(m.icon), alt: '' });
       const card = h('article', { class: 'gcard glass', style: '--c:' + m.color, 'aria-label': m.name },
-        h('i', { class: 'halo', 'aria-hidden': 'true' }),
         need,
         icon,
         h('h2', { class: 'gname' }, m.name),
@@ -138,13 +150,15 @@
     });
     rail.addEventListener('scroll', () => { if (!railFrame) railFrame = requestAnimationFrame(updateRail); }, { passive: true });
     window.addEventListener('resize', sizeRail);
+    if (window.ResizeObserver) new ResizeObserver(sizeRail).observe(rail);
   }
 
   function sizeRail() {
     const rail = $('#gameRail');
     if (!rail || !rail.clientHeight) return;
     // Leave the top of the next card peeking out, so it can be tapped.
-    rail.style.setProperty('--card-h', Math.max(380, Math.min(rail.clientHeight - 84, 620)) + 'px');
+    // The card never gets taller than the visible rail, so its Play button always fits; the next card peeks below.
+    rail.style.setProperty('--card-h', Math.max(300, rail.clientHeight - 70) + 'px');
     updateRail();
   }
 
@@ -367,8 +381,17 @@
     });
   }
 
+  function enter() {
+    const w = $('#s-welcome');
+    if (w.classList.contains('leaving')) return;
+    w.classList.add('leaving');
+    LG.buzz(14);
+    setTimeout(() => { ui.show('hub'); w.classList.remove('leaving'); }, 650);
+  }
+
   function build() {
     ui.mount(HTML);
+    $('#welcomeTap').addEventListener('click', enter);
     $('#hubTopRight').insertBefore(LG.sysBar(true), $('#hubScores'));
     $('#hubToday').addEventListener('click', () => openRoster('hub'));
     $('#hubScores').addEventListener('click', () => { renderScores(); ui.show('scores'); });
