@@ -287,7 +287,7 @@
     $('#dil-show').hidden = true;
     $('#dil-nextlabel').textContent = g.round + 1 >= g.rounds ? 'RESULTAAT' : 'VOLGENDE';
     $('#dil-next').hidden = false;
-    if (diff === 0) ui.confetti(['#5eead4', '#34d399', '#fde047', '#f4f5ff']);
+    if (diff === 0) ui.confetti(['#6fe0a0', '#34d399', '#ffd166', '#f3f7f4']);
     LG.buzz(diff === 0 ? [30, 40, 120] : diff === 1 ? 40 : 150);
   }
 
@@ -319,7 +319,7 @@
     });
     list.scrollTop = 0;
     ui.show('dil-end');
-    if (ratio >= 0.7) ui.confetti(['#fbbf24', '#34d399', '#fb7185', '#f4f5ff']);
+    if (ratio >= 0.7) ui.confetti(['#ffd166', '#34d399', '#ff8fb8', '#f3f7f4']);
     LG.buzz([60, 40, 60, 40, 160]);
   }
 

@@ -5,10 +5,10 @@
 .gl-gtext small{font-size:.66rem;font-weight:900;letter-spacing:.2em;color:var(--muted)}
 .gl-gtext b{font-size:1.15rem;font-weight:900;overflow-wrap:anywhere}
 
-.gl-card{--rc:94,234,212;width:100%;padding:18px 6px 16px;display:flex;flex-direction:column;gap:14px}
-.gl-card[data-pts="3"]{--rc:34,211,238}
+.gl-card{--rc:111,224,160;width:100%;padding:18px 6px 16px;display:flex;flex-direction:column;gap:14px}
+.gl-card[data-pts="3"]{--rc:108,184,255}
 .gl-card[data-pts="2"]{--rc:251,191,36}
-.gl-card[data-pts="0"]{--rc:255,77,141}
+.gl-card[data-pts="0"]{--rc:255,143,184}
 .gl-card.celebrate{animation:glGlow 1.6s var(--out)}
 @keyframes glGlow{
   0%{box-shadow:inset 0 1px 1px rgba(255,255,255,.25),0 0 0 0 rgba(var(--rc),.85),0 0 60px 6px rgba(var(--rc),.6)}
@@ -16,8 +16,8 @@
 }
 .gl-ends{display:flex;justify-content:space-between;gap:12px;padding:0 18px}
 .gl-end{flex:1;min-width:0;font-weight:900;font-size:clamp(.95rem,4.2vw,1.25rem);line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
-.gl-end.l{text-align:left;color:#67e8f9;text-shadow:0 0 24px rgba(34,211,238,.5)}
-.gl-end.r{text-align:right;color:#f9a8d4;text-shadow:0 0 24px rgba(236,72,153,.5)}
+.gl-end.l{text-align:left;color:#6cb8ff;text-shadow:0 0 24px rgba(108,184,255,.5)}
+.gl-end.r{text-align:right;color:#ff8fb8;text-shadow:0 0 24px rgba(255,143,184,.5)}
 
 /* ----- 3D half-moon dial -----
    Het perspectief en de draaiing hebben hun oorsprong in de naaf (170/190 = 89.5 % van de hoogte),
@@ -38,7 +38,7 @@
 }
 .gl-track.drag .gl-dial{--lift:28px;transition:transform .18s var(--out)}
 
-.gl-rim{filter:drop-shadow(0 0 10px rgba(139,92,246,.45))}
+.gl-rim{filter:drop-shadow(0 0 10px rgba(111,224,160,.45))}
 .gl-face{stroke:rgba(255,255,255,.3);stroke-width:1.5}
 .gl-track.drag .gl-face{stroke:hsl(var(--gh) 90% 75% / .7)}
 .gl-inner{fill:none;stroke:rgba(255,255,255,.16);stroke-width:1.5;stroke-dasharray:2 5}
@@ -57,9 +57,9 @@
 .gl-zones{opacity:0;transition:opacity .6s var(--out)}
 .gl-dial.peek .gl-zones,.gl-dial.open .gl-zones{opacity:1}
 .gl-zone{transform-box:view-box;transform-origin:160px 170px;animation:glZone .8s var(--spring) both}
-.gl-zone.p2{fill:#fbbf24}
-.gl-zone.p3{fill:#fb923c}
-.gl-zone.p4{fill:#5eead4}
+.gl-zone.p2{fill:#ffd166}
+.gl-zone.p3{fill:#ffad6b}
+.gl-zone.p4{fill:#6fe0a0}
 @keyframes glZone{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
 
 /* Naald met schaduw, gloed die meekleurt met de positie en een naijlende spooknaald. */
@@ -89,15 +89,15 @@
 .gl-track[aria-disabled="true"] .gl-needle{opacity:.55}
 .gl-dial.open .gl-needle{opacity:1}
 .gl-dial.peek .gl-needle,.gl-dial.peek .gl-ghost{opacity:0}
-.gl-card[data-pts="4"] .gl-tip,.gl-card[data-pts="3"] .gl-tip{fill:#5eead4;stroke:#fff}
-.gl-card[data-pts="4"] .gl-needle .glow,.gl-card[data-pts="3"] .gl-needle .glow{stroke:rgba(94,234,212,.5)}
+.gl-card[data-pts="4"] .gl-tip,.gl-card[data-pts="3"] .gl-tip{fill:#6fe0a0;stroke:#fff}
+.gl-card[data-pts="4"] .gl-needle .glow,.gl-card[data-pts="3"] .gl-needle .glow{stroke:rgba(111,224,160,.5)}
 
 .gl-status{margin:0;padding:0 18px;text-align:center;font-weight:800;letter-spacing:.14em;font-size:.78rem;color:var(--muted);min-height:2.4em;overflow-wrap:anywhere}
 
-.gl-result{--rc:94,234,212;display:flex;flex-direction:column;align-items:center;gap:4px;animation:glPop 1s var(--spring) both}
-.gl-result[data-pts="3"]{--rc:34,211,238}
+.gl-result{--rc:111,224,160;display:flex;flex-direction:column;align-items:center;gap:4px;animation:glPop 1s var(--spring) both}
+.gl-result[data-pts="3"]{--rc:108,184,255}
 .gl-result[data-pts="2"]{--rc:251,191,36}
-.gl-result[data-pts="0"]{--rc:255,77,141}
+.gl-result[data-pts="0"]{--rc:255,143,184}
 .gl-pts{font-size:clamp(3.4rem,18vw,5.2rem);font-weight:900;line-height:1;color:rgb(var(--rc));text-shadow:0 0 50px rgba(var(--rc),.85)}
 .gl-verdict{font-weight:900;letter-spacing:.2em;font-size:1rem;color:rgb(var(--rc))}
 @keyframes glPop{from{opacity:0;transform:scale(2.4) rotate(-6deg)}to{opacity:1;transform:none}}

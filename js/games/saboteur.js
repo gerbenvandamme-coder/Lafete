@@ -8,8 +8,8 @@
   const MAX_PLAYERS = 10;
   const PTS_CREW = 2;
   const PTS_SAB = 3;
-  const NEUTRAL_INK = '#8b5cf6';
-  const INK = ['#22d3ee', '#ff4da6', '#a3e635', '#fb923c', '#a78bfa', '#facc15', '#2dd4bf', '#f87171', '#60a5fa', '#e879f9'];
+  const NEUTRAL_INK = '#6fe0a0';
+  const INK = ['#6cb8ff', '#ff4da6', '#a3e635', '#ffad6b', '#a78bfa', '#facc15', '#2dd4bf', '#f87171', '#60a5fa', '#e879f9'];
 
   const CATEGORIES = LG.data.saboteur;
   const ALL_WORDS = [];
@@ -135,7 +135,7 @@
       'Iedereen ziet het geheime woord, behalve de Saboteur. Teken om de beurt precies één lijn op het gedeelde vlak. Wie tekent er naast? Stem de Saboteur eruit.'));
     box.appendChild(h('p', { class: 'sec' }, 'RONDES'));
     box.appendChild(ui.numStepper({
-      label: 'RONDES', icon: 'pen', rgb: '34,211,238', minus: 'Minder rondes', plus: 'Meer rondes',
+      label: 'RONDES', icon: 'pen', rgb: '108,184,255', minus: 'Minder rondes', plus: 'Meer rondes',
       obj: cfg, key: 'rounds', min: 1, max: 4
     }).el);
     box.appendChild(h('p', { class: 'sec' }, 'CATEGORIEËN'));
@@ -152,12 +152,18 @@
           renderMeta();
           LG.buzz(8);
         }
-      }, cat.name);
+      }, LG.iconImg(SAB_ICON[cat.name] || 'sab-voorwerpen'), cat.name);
       pills.appendChild(b);
     });
     box.appendChild(h('div', { class: 'glass' }, pills));
     renderMeta();
   }
+
+  // Illustrated icon per drawing category (assets/icons), matched on the category name.
+  const SAB_ICON = {
+    'Beroepen': 'sab-beroepen', 'Dieren': 'sab-dieren', 'Eten & Drinken': 'sab-eten', 'Fantasie & Film': 'sab-fantasie',
+    'Natuur & Weer': 'sab-natuur', 'Plekken': 'sab-plekken', 'Sport & Spel': 'sab-sport', 'Voorwerpen': 'sab-voorwerpen'
+  };
 
   /* ----- game flow ----- */
   function startGame() {
@@ -375,7 +381,7 @@
     list.scrollTop = 0;
 
     ui.show('sab-victory');
-    ui.confetti(winner === 'crew' ? ['#22d3ee', '#a3e635', '#5eead4', '#f4f5ff'] : ['#ff4da6', '#a78bfa', '#fb923c', '#f4f5ff']);
+    ui.confetti(winner === 'crew' ? ['#6cb8ff', '#a3e635', '#6fe0a0', '#f3f7f4'] : ['#ff4da6', '#a78bfa', '#ffad6b', '#f3f7f4']);
     LG.buzz([60, 40, 60, 40, 160]);
   }
 
@@ -416,7 +422,7 @@
 
   LG.registerGame({
     id: 'saboteur', title: 'SABOTEUR', tag: 'Wie tekent er naast?',
-    icon: 'pen', rgb: '34,211,238', min: MIN_PLAYERS, max: MAX_PLAYERS,
+    icon: 'pen', rgb: '108,184,255', min: MIN_PLAYERS, max: MAX_PLAYERS,
     mount: mount,
     open() { cleanup(); loadCfg(); ui.show('sab-setup'); },
     reset: cleanup

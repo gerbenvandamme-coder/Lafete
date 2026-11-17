@@ -71,7 +71,36 @@
     return m;
   };
 
-  LG.buzz = function (p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet ondersteund */ } };
+  /* Light haptic tick. Android: a short vibration (never longer than 12 ms).
+     iPhone (Safari has no vibrate): toggling a hidden iOS 18 <input switch> plays the system's light tap.
+     It only works inside a tap; elsewhere, and on older iOS, nothing happens. */
+  let hapticLabel = null;
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function iosTick() {
+    if (!hapticLabel) {
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.setAttribute('switch', '');
+      input.id = 'lg-haptic';
+      input.tabIndex = -1;
+      input.setAttribute('aria-hidden', 'true');
+      hapticLabel = document.createElement('label');
+      hapticLabel.htmlFor = 'lg-haptic';
+      hapticLabel.setAttribute('aria-hidden', 'true');
+      const hide = 'position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
+      input.style.cssText = hide;
+      hapticLabel.style.cssText = hide;
+      document.body.appendChild(input);
+      document.body.appendChild(hapticLabel);
+    }
+    hapticLabel.click();
+  }
+  LG.buzz = function (p) {
+    try {
+      if (navigator.vibrate) { navigator.vibrate(Math.min(12, typeof p === 'number' ? p : 8)); return; }
+      if (isIOS) iosTick();
+    } catch (e) { /* not supported */ }
+  };
   LG.clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   LG.initial = (name) => (String(name || '').trim().charAt(0) || '?').toUpperCase();
   LG.norm = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '');

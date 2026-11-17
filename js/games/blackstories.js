@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  /* RAADSEL DER DOOD (Black Stories): catalogus, publiek raadsel, dossier van de verteller met stopwatch en eregalerij. */
+  /* BLACK STORY: catalogus, publiek raadsel, dossier van de verteller met stopwatch en eregalerij. */
   const LG = window.LG;
   const $ = LG.$, h = LG.h, ui = LG.ui;
 
@@ -134,11 +134,11 @@
 
   /* ----- HTML ----- */
   const HTML = `
-  <section class="screen" id="s-bs-catalog" aria-label="Raadsel der Dood, verhalen">
+  <section class="screen" id="s-bs-catalog" aria-label="Black Story, verhalen">
     <div class="wrap">
       <header class="top">
         <button type="button" class="icon-btn glass" data-home aria-label="Terug naar hub"><svg class="ic"><use href="#i-home"/></svg></button>
-        <h2 class="title">RAADSEL DER DOOD</h2>
+        <h2 class="title">BLACK STORY</h2>
         <button type="button" class="icon-btn glass" id="bs-hallbtn" aria-label="Eregalerij"><svg class="ic"><use href="#i-trophy"/></svg></button>
       </header>
       <div class="bs-tools">
@@ -350,7 +350,7 @@
     pending = { id: current.id, ms: ms };
     $('#bs-solvetime').textContent = fmt(ms);
     $('#bs-name').value = loadName();
-    ui.confetti(['#34d399', '#fbbf24', '#f43f5e', '#f4f5ff']);
+    ui.confetti(['#34d399', '#ffd166', '#f43f5e', '#f3f7f4']);
     if (LG.sound && LG.sound.victory) { try { LG.sound.victory(); } catch (e) { /* geen geluid */ } }
     LG.buzz([40, 30, 80]);
     ui.openModal('m-bs-name');
@@ -467,8 +467,8 @@
   }
 
   LG.registerGame({
-    id: 'blackstories', title: 'RAADSEL DER DOOD', tag: 'Los de duistere misdaad op',
-    icon: 'ghost', rgb: '244,63,94', min: 2, max: 20,
+    id: 'blackstories', title: 'BLACK STORY', tag: 'Los de duistere misdaad op',
+    icon: 'ghost', rgb: '255,122,140', min: 2, max: 20,
     mount: mount,
     open() { cleanup(); renderList(); ui.show('bs-catalog'); },
     reset: cleanup

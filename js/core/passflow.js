@@ -83,7 +83,7 @@
         const pl = players[i], n = players.length;
         const av = el('pavatar');
         av.textContent = LG.initial(pl.name);
-        av.style.setProperty('--pc', pl.color || '#8b5cf6');
+        av.style.setProperty('--pc', pl.color || '#6fe0a0');
         el('pname').textContent = pl.name;
         const pct = Math.round((i / n) * 100);
         el('pbar').style.width = pct + '%';

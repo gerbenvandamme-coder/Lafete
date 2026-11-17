@@ -44,9 +44,9 @@
               <svg class="gl-dial" id="gl-dial" viewBox="0 0 320 190" aria-hidden="true" focusable="false">
                 <defs>
                   <radialGradient id="glFace" cx="160" cy="170" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff" stop-opacity=".16"/><stop offset=".7" stop-color="#a5b4fc" stop-opacity=".07"/><stop offset="1" stop-color="#0b0b1e" stop-opacity=".38"/></radialGradient>
-                  <linearGradient id="glBezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".8"/><stop offset=".55" stop-color="#8b5cf6" stop-opacity=".4"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".55"/></linearGradient>
+                  <linearGradient id="glBezel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".8"/><stop offset=".55" stop-color="#6fe0a0" stop-opacity=".4"/><stop offset="1" stop-color="#6cb8ff" stop-opacity=".55"/></linearGradient>
                   <linearGradient id="glGloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".4"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
-                  <radialGradient id="glHub" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#c4b5fd"/><stop offset="1" stop-color="#4c1d95"/></radialGradient>
+                  <radialGradient id="glHub" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#b49cff"/><stop offset="1" stop-color="#4c1d95"/></radialGradient>
                   <filter id="glBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
                 </defs>
                 <ellipse class="gl-floor" cx="160" cy="177" rx="150" ry="9" fill="#000000" opacity=".5" filter="url(#glBlur)"/>
@@ -130,7 +130,7 @@
       'De Gids ziet waar het doel zit op de balk en geeft één hint. De groep sleept de marker naar de plek waar het doel volgens hen zit. Dichter bij = meer punten voor de Gids.'));
     box.appendChild(h('p', { class: 'sec' }, 'BEURTEN'));
     box.appendChild(ui.numStepper({
-      label: 'PER SPELER', icon: 'wave', rgb: '232,121,249', minus: 'Minder beurten', plus: 'Meer beurten',
+      label: 'PER SPELER', icon: 'wave', rgb: '255,173,107', minus: 'Minder beurten', plus: 'Meer beurten',
       obj: cfg, key: 'turns', min: 1, max: 3
     }).el);
   }
@@ -317,7 +317,7 @@
     LG.restart(res, 'gl-pop-reset');
     res.classList.remove('gl-pop-reset');
     if (g.pts > 0) LG.restart($('#gl-card'), 'celebrate');
-    if (g.pts >= 3) ui.confetti(['#5eead4', '#22d3ee', '#e879f9', '#f4f5ff']);
+    if (g.pts >= 3) ui.confetti(['#6fe0a0', '#6cb8ff', '#e879f9', '#f3f7f4']);
     LG.buzz(g.pts >= 3 ? [30, 40, 120] : g.pts > 0 ? 40 : 150);
   }
 
@@ -416,7 +416,7 @@
     list.scrollTop = 0;
     $('#s-gl-end').setAttribute('data-winner', 'civ');
     ui.show('gl-end');
-    if (winners.length) ui.confetti(['#e879f9', '#22d3ee', '#fde047', '#f4f5ff']);
+    if (winners.length) ui.confetti(['#e879f9', '#6cb8ff', '#ffd166', '#f3f7f4']);
     LG.buzz([60, 40, 60, 40, 160]);
   }
 
@@ -448,7 +448,7 @@
 
   LG.registerGame({
     id: 'golflengte', title: 'GOLFLENGTE', tag: 'Lees elkaars gedachten',
-    icon: 'wave', rgb: '232,121,249', min: MIN_PLAYERS, max: MAX_PLAYERS,
+    icon: 'wave', rgb: '255,173,107', min: MIN_PLAYERS, max: MAX_PLAYERS,
     mount: mount,
     open() { cleanup(); loadCfg(); ui.show('gl-setup'); },
     reset: cleanup

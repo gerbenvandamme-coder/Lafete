@@ -17,14 +17,24 @@
     });
   }
 
-  function show(id) {
+  // opts.back: the screen springs in from the left (going back) instead of popping up.
+  function show(id, opts) {
     const target = $('#s-' + id);
     if (!target) { console.warn('Onbekend scherm:', id); return; }
+    const back = !!(opts && opts.back);
     $$('.screen').forEach((sc) => {
       const on = sc === target;
       sc.classList.toggle('active', on);
       if (on) sc.removeAttribute('aria-hidden'); else sc.setAttribute('aria-hidden', 'true');
     });
+    if (current !== id) {
+      target.classList.toggle('enter', false);
+      target.classList.toggle('enter-back', false);
+      void target.offsetWidth;
+      target.classList.add(back ? 'enter-back' : 'enter');
+      clearTimeout(target._enterT);
+      target._enterT = setTimeout(() => { target.classList.toggle('enter', false); target.classList.toggle('enter-back', false); }, 700);
+    }
     current = id;
     document.dispatchEvent(new CustomEvent('screenshow', { detail: id }));
     LG.later(() => {
@@ -84,7 +94,7 @@
 
   /* ----- confetti ----- */
   function confetti(colors) {
-    const cols = colors || ['#8b5cf6', '#22d3ee', '#ec4899', '#6366f1', '#f4f5ff', '#5eead4'];
+    const cols = colors || ['#6fe0a0', '#6cb8ff', '#ffad6b', '#ff8fb8', '#ffd166', '#f3f7f4'];
     for (let i = 0; i < 40; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 120 + Math.random() * 220;
@@ -113,8 +123,8 @@
       onclick: () => LG.hub.openRoster(returnId)
     },
       h('span', { class: 'avatars' }, kids),
-      h('span', { class: 'strip-n' }, players.length + ' SPELERS'),
-      LG.icon('users')
+      h('span', { class: 'strip-n' }, players.length + (players.length === 1 ? ' speler' : ' spelers')),
+      h('span', { class: 'strip-edit' }, 'Wijzig')
     );
   }
 
@@ -131,7 +141,7 @@
     <section class="screen" id="s-${p}-setup" aria-label="Instellingen ${title}">
       <div class="wrap">
         <header class="top">
-          <button type="button" class="icon-btn glass" data-home aria-label="Terug naar hub"><svg class="ic"><use href="#i-home"/></svg></button>
+          <button type="button" class="icon-btn glass" data-home aria-label="Terug naar de spellen"><svg class="ic"><use href="#i-back"/></svg></button>
           <h2 class="title">${title}</h2>
           <span class="chip glass-lite" id="${p}-chip" aria-live="polite"></span>
         </header>
@@ -159,8 +169,8 @@
     const minus = h('button', { type: 'button', class: 'step', 'aria-label': def.minus || 'Minder', onclick: () => press(-1) }, LG.icon('minus'));
     const plus = h('button', { type: 'button', class: 'step', 'aria-label': def.plus || 'Meer', onclick: () => press(1) }, LG.icon('plus'));
     const val = h('span', { class: 'val', 'aria-live': 'polite' }, '');
-    const row = h('div', { class: 'row glass', style: '--rgb:' + (def.rgb || '167,139,250') },
-      h('span', { class: 'row-ic', 'aria-hidden': 'true' }, LG.icon(def.icon || 'users')),
+    const row = h('div', { class: 'row glass', style: '--rgb:' + (def.rgb || '111,224,160') },
+      rowIcon(def.img || def.icon || 'users'),
       h('span', { class: 'row-label' }, def.label),
       h('div', { class: 'ctrl' }, minus, val, plus)
     );
@@ -177,7 +187,7 @@
   // Simple bounded number stepper bound to obj[key] (persisted through LG.store.save()).
   function numStepper(o) {
     return stepper({
-      label: o.label, icon: o.icon, rgb: o.rgb, minus: o.minus, plus: o.plus,
+      label: o.label, icon: o.icon, img: o.img, rgb: o.rgb, minus: o.minus, plus: o.plus,
       value: () => o.obj[o.key],
       check: (dir) => {
         const next = o.obj[o.key] + dir * (o.step || 1);
@@ -190,23 +200,46 @@
     });
   }
 
-  // Toggle row: def { label, icon, rgb, get(), set(bool) }
+  // Toggle row: def { label, icon | img | imgOff, rgb, get(), set(bool) }. With imgOff the icon swaps when off.
   function switchRow(def) {
+    const ic = rowIcon(def.img || def.icon || 'eye');
+    const paint = () => {
+      const on = def.get();
+      sw.setAttribute('aria-pressed', on ? 'true' : 'false');
+      row.classList.toggle('on', on);
+      if (def.imgOff) ic.querySelector('img').src = iconSrc(on ? (def.img || def.icon) : def.imgOff);
+    };
     const sw = h('button', {
       type: 'button', class: 'switch', role: 'switch', 'aria-label': def.label, 'aria-pressed': def.get() ? 'true' : 'false',
       onclick: () => {
         def.set(!def.get());
-        sw.setAttribute('aria-pressed', def.get() ? 'true' : 'false');
+        paint();
+        LG.restart(ic, 'pop');
         LG.buzz(8);
       }
     });
-    const row = h('div', { class: 'row glass', style: '--rgb:' + (def.rgb || '94,234,212') },
-      h('span', { class: 'row-ic', 'aria-hidden': 'true' }, LG.icon(def.icon || 'eye')),
+    const row = h('div', { class: 'row glass', style: '--rgb:' + (def.rgb || '111,224,160') },
+      ic,
       h('span', { class: 'row-label' }, def.label),
       sw
     );
+    paint();
     return { el: row };
   }
+
+  /* ----- illustrated icons (assets/icons) ----- */
+  // Old line-icon names used by the games map onto the illustrated set.
+  const ICON_IMG = {
+    mask: 'rol-undercover', ghost: 'rol-mrwhite', user: 'rol-burger', users: 'spelers',
+    pen: 'rondes', scale: 'rondes', herd: 'rondes', wave: 'beurten', eye: 'open-kaart', target: 'golflengte',
+    spy: 'spec-informant', merge: 'spec-handlanger', spark: 'spec-nar', dice: 'spec-mutators', shield: 'spec-blind'
+  };
+  function iconSrc(name) { return 'assets/icons/' + (ICON_IMG[name] || name) + '.webp'; }
+  function rowIcon(name) {
+    return h('span', { class: 'row-ic', 'aria-hidden': 'true' }, h('img', { src: iconSrc(name), alt: '' }));
+  }
+  LG.iconSrc = iconSrc;
+  LG.iconImg = (name, cls) => h('img', { class: 'ii ' + (cls || ''), src: iconSrc(name), alt: '', 'aria-hidden': 'true' });
 
   function init() {
     document.addEventListener('click', (e) => {

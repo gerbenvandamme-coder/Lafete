@@ -11,12 +11,18 @@
   const ROLE_LABEL = { civ: 'BURGER', und: 'UNDERCOVER', white: 'MR. WHITE' };
   const ROLE_CLASS = { civ: 'r-civ', und: 'r-und', white: 'r-white' };
   const ROLE_ICON = { civ: 'user', und: 'mask', white: 'ghost' };
-  const ROLE_RGB = { civ: '94,234,212', und: '255,77,141', white: '243,244,255' };
+  const ROLE_RGB = { civ: '111,224,160', und: '255,143,184', white: '243,244,255' };
   const POINTS = { civ: 1, und: 2, white: 3 };
   const JESTER_POINTS = 3;
-  const SEAL_RGB = '167,139,250';
+  const SEAL_RGB = '111,224,160';
   const SUB_LABEL = { informant: 'INFORMANT', jester: 'NAR' };
   const norm = LG.norm;
+
+  // Illustrated icon per word category (assets/icons).
+  const CAT_ICON = {
+    situaties: 'cat-situaties', psycho: 'cat-psychologisch', objecten: 'cat-objecten',
+    cultuur: 'cat-eten-cultuur', dagelijks: 'cat-dagelijks', mindfuck: 'cat-dubbele-bodem'
+  };
 
   // Specialists & modifiers shown in the setup screen. ok(total, und, white) = availability rule.
   const SPECS = [
@@ -434,7 +440,7 @@
     const box = $('#uc-opts');
     box.textContent = '';
 
-    steppers.und = roleStepper('und', { label: 'UNDERCOVERS', icon: 'mask', rgb: '255,77,141', minus: 'Minder undercovers', plus: 'Meer undercovers' });
+    steppers.und = roleStepper('und', { label: 'UNDERCOVERS', icon: 'mask', rgb: '255,143,184', minus: 'Minder undercovers', plus: 'Meer undercovers' });
     steppers.white = roleStepper('white', { label: 'MR. WHITE', icon: 'ghost', rgb: '243,244,255', minus: 'Minder Mr. White', plus: 'Meer Mr. White' });
 
     box.appendChild(h('p', { class: 'how glass-lite' },
@@ -458,7 +464,7 @@
           renderMeta();
           LG.buzz(8);
         }
-      }, cat.name);
+      }, LG.iconImg(CAT_ICON[cat.id] || 'cat-situaties'), cat.name);
       pills.appendChild(b);
     });
     box.appendChild(h('div', { class: 'glass' }, pills));
@@ -479,7 +485,7 @@
           specNote.textContent = s.label + ': ' + s.note;
           LG.buzz(8);
         }
-      }, LG.icon(s.icon), s.label);
+      }, LG.iconImg(s.icon), s.label);
       specPills[s.key] = b;
       specRow.appendChild(b);
     });
@@ -495,10 +501,13 @@
         showAware();
         LG.buzz(8);
       }
-    }, LG.icon('mask'), 'UNDERCOVER WEET HET');
+    }, LG.iconImg('weet-het'), h('span', { class: 'aware-label' }, 'UNDERCOVER WEET HET'));
+    awareBtn.classList.add('solo');
     function showAware() {
       const on = cfg.undAware !== false;
       awareBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      awareBtn.querySelector('.ii').src = LG.iconSrc(on ? 'weet-het' : 'weet-het-niet');
+      awareBtn.querySelector('.aware-label').textContent = on ? 'UNDERCOVER WEET HET' : 'UNDERCOVER WEET HET NIET';
       awareNote.textContent = on
         ? 'AAN: een undercover weet dat zijn woord afwijkt en speelt daar bewust mee.'
         : 'UIT: een undercover denkt dat hij een gewoon burgerwoord heeft, krijgt dezelfde tips als een burger en hoort niets van Handlangers.';
@@ -516,7 +525,8 @@
         showKompas();
         LG.buzz(8);
       }
-    }, LG.icon('target'), 'MR. WHITE KOMPAS');
+    }, LG.iconImg('kompas'), 'MR. WHITE KOMPAS');
+    kompasBtn.classList.add('solo');
     function showKompas() {
       const on = kompasOn(activeCount());
       kompasBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -737,7 +747,7 @@
     const orb = $('#uc-eorb');
     orb.textContent = '';
     orb.appendChild(h('span', { class: 'ring' }));
-    orb.appendChild(LG.icon(sealed ? 'shield' : ROLE_ICON[p.role]));
+    orb.appendChild(LG.iconImg(sealed ? 'shield' : ROLE_ICON[p.role]));
     const btn = $('#uc-enext');
     btn.disabled = true;
     el.classList.remove('play');
@@ -935,7 +945,7 @@
     const vicon = $('#s-uc-victory .vhead use');
     if (vicon) vicon.setAttribute('href', winner === 'jester' ? '#i-spark' : '#i-crown');
     ui.show('uc-victory');
-    ui.confetti(winner === 'jester' ? ['#fde047', '#fbbf24', '#a78bfa', '#f4f5ff'] : undefined);
+    ui.confetti(winner === 'jester' ? ['#ffd166', '#ffd166', '#a78bfa', '#f3f7f4'] : undefined);
     if (LG.sound) LG.sound.victory(winner);
     LG.buzz([60, 40, 60, 40, 160]);
   }
@@ -996,7 +1006,7 @@
 
   LG.registerGame({
     id: 'undercover', title: 'UNDERCOVER', tag: 'Wie heeft een ander woord?',
-    icon: 'mask', rgb: '255,77,141', min: MIN_PLAYERS, max: MAX_PLAYERS,
+    icon: 'mask', rgb: '255,143,184', min: MIN_PLAYERS, max: MAX_PLAYERS,
     mount: mount,
     open() { cleanup(); cfg = store.cfg('undercover', cfgDefaults()); ui.show('uc-setup'); },
     reset: cleanup

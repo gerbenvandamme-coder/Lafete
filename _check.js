@@ -1,6 +1,6 @@
 // Tijdelijk: controleert de omvang en de integriteit van de databases.
 global.window = { LG: { data: {} } };
-['saboteur', 'golflengte', 'dilemma', 'kameleon'].forEach((n) => require('./js/data/' + n + '.js'));
+['saboteur', 'golflengte', 'dilemma'].forEach((n) => require('./js/data/' + n + '.js'));
 const d = window.LG.data;
 let bad = 0;
 function fail(msg) { console.error('FOUT:', msg); bad++; }
@@ -24,11 +24,8 @@ if (d.golflengte.length < 80) fail('golflengte < 80');
 dupes(d.dilemma, 'dilemma');
 if (d.dilemma.length < 100) fail('dilemma < 100');
 
-dupes(d.kameleon, 'kameleon');
-if (d.kameleon.length < 100) fail('kameleon < 100');
 
 console.log('saboteur woorden:', words.length, 'in', d.saboteur.length, 'categorieën');
 console.log('golflengte paren:', d.golflengte.length);
 console.log('dilemma stellingen:', d.dilemma.length);
-console.log('kameleon opdrachten:', d.kameleon.length);
 process.exit(bad ? 1 : 0);

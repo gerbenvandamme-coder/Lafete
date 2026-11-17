@@ -1,240 +1,246 @@
 (function () {
   'use strict';
 
+  /* LaFête storage.
+     - One roster of everyone who ever played (localStorage).
+     - "Today" = who plays during this launch of the app (sessionStorage): every new launch starts empty.
+     - Groups are presets: a saved list of roster members that you tick in one go.
+     - Scores, per-game settings and the no-repeat memory of drawn prompts are shared by the whole roster. */
+
   const LG = window.LG;
-  const KEY = 'party-hub-liquid-glass:v2';
-  const OLD_KEY = 'undercover-liquid-glass:v1';
+  const KEY = 'lafete:v3';
+  const OLD_KEY = 'party-hub-liquid-glass:v2';
+  const TODAY_KEY = 'lafete:today:v1';
   const NAME_MAX = 14;
-  const GROUP_NAME_MAX = 22;
-  const MAX_GROUPS = 12;
-  const MAX_PLAYERS = 20;
-  const HISTORY_MAX = 200;
-  const NEON = [
-    '#22d3ee', '#ff4fd8', '#a3e635', '#fb923c', '#a78bfa', '#fde047',
-    '#34d399', '#f87171', '#60a5fa', '#f472b6', '#2dd4bf', '#e879f9'
-  ];
+  const PRESET_NAME_MAX = 22;
+  const MAX_PRESETS = 12;
+  const MAX_ROSTER = 60;
+  const MAX_PLAYERS = 20; // most players a single game accepts
+  const COLORS = ['#6fe0a0', '#6cb8ff', '#ffad6b', '#ff8fb8', '#ffd166', '#b49cff', '#7de3e0', '#ff9e7a', '#a8e66b', '#f7a8ff'];
 
-  /* A "bucket" holds everything that belongs to one circle of players: roster, scores and the
-     no-repeat memory. The guest session is the root object itself; every group is its own bucket. */
-  const bucketBlank = () => ({ nextId: 1, players: [], scores: {}, used: {} });
-  const blank = () => Object.assign(bucketBlank(), { cfg: {}, groups: [], activeGroup: null, nextGroupId: 1 });
+  const blank = () => ({ nextId: 1, players: [], scores: {}, used: {}, cfg: {}, presets: [], nextPresetId: 1 });
   const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
-  const cleanName = (n) => String(n == null ? '' : n).replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
-  const cleanGroupName = (n) => String(n == null ? '' : n).replace(/\s+/g, ' ').trim().slice(0, GROUP_NAME_MAX);
+  const clean = (n, max) => String(n == null ? '' : n).replace(/\s+/g, ' ').trim().slice(0, max);
   let d = blank();
-
-  const group = () => d.groups.filter((g) => g.id === d.activeGroup)[0] || null;
-  const B = () => group() || d;
-  const usedCount = (u) => Object.keys(u).reduce((n, k) => n + (Array.isArray(u[k]) ? u[k].length : 0), 0);
-
-  function announce() {
-    document.dispatchEvent(new CustomEvent('groupchange'));
-  }
+  let today = [];
 
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { /* privé modus of vol: negeren */ }
+    const out = Object.assign({}, d, { players: d.players.map((p) => ({ id: p.id, name: p.name, last: p.last || 0 })) });
+    try { localStorage.setItem(KEY, JSON.stringify(out)); } catch (e) { /* private mode or full */ }
+  }
+  function saveToday() {
+    try { sessionStorage.setItem(TODAY_KEY, JSON.stringify(today)); } catch (e) { /* private mode */ }
   }
 
-  // One-time import of the roster + Undercover settings of the old single-game app.
-  function migrateOld(next) {
-    let old = null;
-    try { old = JSON.parse(localStorage.getItem(OLD_KEY) || 'null'); } catch (e) { old = null; }
-    if (!isObj(old)) return;
-    const lim = isObj(old.setup) && typeof old.setup.total === 'number' ? old.setup.total : MAX_PLAYERS;
-    if (Array.isArray(old.names)) {
-      old.names.slice(0, lim).forEach((n) => {
-        const name = cleanName(n);
-        if (!name || next.players.length >= MAX_PLAYERS) return;
-        if (next.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return;
-        next.players.push({ id: next.nextId++, name: name, active: true });
-      });
-    }
-    if (isObj(old.setup)) {
-      next.cfg.undercover = { und: old.setup.und, white: old.setup.white, cats: isObj(old.setup.cats) ? old.setup.cats : {} };
-    }
-    if (Array.isArray(old.used)) next.used.undercover = old.used.slice(0, 500);
-  }
+  const byId = (id) => d.players.filter((p) => p.id === id)[0] || null;
+  const byName = (name) => { const low = name.toLowerCase(); return d.players.filter((p) => p.name.toLowerCase() === low)[0] || null; };
 
-  // Reads roster, scores and used-memory from a saved object into a bucket.
-  function readBucket(raw, out) {
+  function readCurrent(raw, next) {
     if (Array.isArray(raw.players)) {
       raw.players.forEach((p) => {
-        if (!isObj(p) || typeof p.id !== 'number' || out.players.length >= MAX_PLAYERS) return;
-        const name = cleanName(p.name);
-        if (!name) return;
-        out.players.push({ id: p.id, name: name, active: p.active !== false });
-        out.nextId = Math.max(out.nextId, p.id + 1);
+        if (!isObj(p) || typeof p.id !== 'number' || next.players.length >= MAX_ROSTER) return;
+        const name = clean(p.name, NAME_MAX);
+        if (!name || next.players.some((x) => x.id === p.id || x.name.toLowerCase() === name.toLowerCase())) return;
+        next.players.push({ id: p.id, name: name, last: +p.last || 0 });
+        next.nextId = Math.max(next.nextId, p.id + 1);
       });
     }
-    if (typeof raw.nextId === 'number') out.nextId = Math.max(out.nextId, raw.nextId);
+    if (typeof raw.nextId === 'number') next.nextId = Math.max(next.nextId, raw.nextId);
     if (isObj(raw.scores)) {
       Object.keys(raw.scores).forEach((k) => {
         const s = raw.scores[k];
-        if (isObj(s) && out.players.some((p) => String(p.id) === k)) {
-          out.scores[k] = { pts: Math.max(0, Math.round(+s.pts || 0)), wins: Math.max(0, Math.round(+s.wins || 0)) };
+        if (isObj(s) && next.players.some((p) => String(p.id) === k)) {
+          next.scores[k] = { pts: Math.max(0, Math.round(+s.pts || 0)), wins: Math.max(0, Math.round(+s.wins || 0)) };
         }
       });
     }
-    if (isObj(raw.used)) {
-      Object.keys(raw.used).forEach((k) => { if (Array.isArray(raw.used[k])) out.used[k] = raw.used[k].slice(-1000); });
+    if (isObj(raw.used)) Object.keys(raw.used).forEach((k) => { if (Array.isArray(raw.used[k])) next.used[k] = raw.used[k].slice(-1000); });
+    if (isObj(raw.cfg)) next.cfg = raw.cfg;
+    if (Array.isArray(raw.presets)) {
+      raw.presets.slice(0, MAX_PRESETS).forEach((g) => {
+        const name = clean(g && g.name, PRESET_NAME_MAX);
+        if (!name || typeof g.id !== 'number' || !Array.isArray(g.members)) return;
+        const members = g.members.filter((id) => next.players.some((p) => p.id === id));
+        next.presets.push({ id: g.id, name: name, members: members });
+        next.nextPresetId = Math.max(next.nextPresetId, g.id + 1);
+      });
     }
-    return out;
   }
 
-  function readGroup(raw) {
-    if (!isObj(raw) || typeof raw.id !== 'number') return null;
-    const name = cleanGroupName(raw.name);
-    if (!name) return null;
-    const g = readBucket(raw, bucketBlank());
-    g.id = raw.id;
-    g.name = name;
-    g.totalWins = Math.max(0, Math.round(+raw.totalWins || 0));
-    g.history = Array.isArray(raw.history)
-      ? raw.history
-        .filter((x) => isObj(x) && typeof x.n === 'string' && isFinite(x.t))
-        .slice(-HISTORY_MAX)
-        .map((x) => ({ t: +x.t, n: cleanName(x.n) }))
-      : [];
-    const best = isObj(raw.best) ? raw.best : {};
-    const hi = isObj(best.high) && isFinite(best.high.pts) ? best.high : null;
-    const fa = isObj(best.fast) && isFinite(best.fast.ms) ? best.fast : null;
-    g.best = {
-      high: hi ? { n: cleanName(hi.n), pts: Math.max(0, Math.round(hi.pts)) } : null,
-      fast: fa ? { n: cleanName(fa.n), ms: Math.max(1, Math.round(fa.ms)), game: String(fa.game || '').slice(0, 24) } : null
+  // One-time import of the previous app: the guest roster and every group profile are merged into one roster,
+  // and each old group becomes a preset of its members. Scores and drawn-prompt memory are combined by name.
+  function migrate(old, next) {
+    const addName = (name) => {
+      const n = clean(name, NAME_MAX);
+      if (!n) return null;
+      const low = n.toLowerCase();
+      let p = next.players.filter((x) => x.name.toLowerCase() === low)[0];
+      if (!p && next.players.length < MAX_ROSTER) { p = { id: next.nextId++, name: n, last: 0 }; next.players.push(p); }
+      return p || null;
     };
-    return g;
+    const absorb = (bucket) => {
+      const ids = [];
+      (Array.isArray(bucket.players) ? bucket.players : []).forEach((op) => {
+        if (!isObj(op)) return;
+        const p = addName(op.name);
+        if (!p) return;
+        ids.push(p.id);
+        const s = isObj(bucket.scores) ? bucket.scores[op.id] : null;
+        if (isObj(s)) {
+          const cur = next.scores[p.id] || (next.scores[p.id] = { pts: 0, wins: 0 });
+          cur.pts += Math.max(0, Math.round(+s.pts || 0));
+          cur.wins += Math.max(0, Math.round(+s.wins || 0));
+        }
+      });
+      if (isObj(bucket.used)) {
+        Object.keys(bucket.used).forEach((k) => {
+          if (!Array.isArray(bucket.used[k])) return;
+          const seen = LG.toMap((next.used[k] || []).map(String));
+          next.used[k] = (next.used[k] || []).concat(bucket.used[k].filter((x) => !seen[String(x)])).slice(-1000);
+        });
+      }
+      return ids;
+    };
+    absorb(old);
+    if (isObj(old.cfg)) next.cfg = old.cfg;
+    (Array.isArray(old.groups) ? old.groups : []).forEach((g) => {
+      if (!isObj(g)) return;
+      const ids = absorb(g);
+      const name = clean(g.name, PRESET_NAME_MAX);
+      if (name && ids.length && next.presets.length < MAX_PRESETS) next.presets.push({ id: next.nextPresetId++, name: name, members: ids });
+    });
   }
 
   function load() {
     let raw = null;
     try { raw = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { raw = null; }
     const next = blank();
-    if (isObj(raw)) {
-      readBucket(raw, next);
-      if (isObj(raw.cfg)) next.cfg = raw.cfg;
-      if (Array.isArray(raw.groups)) {
-        raw.groups.slice(0, MAX_GROUPS).forEach((rg) => {
-          const g = readGroup(rg);
-          if (g && !next.groups.some((x) => x.id === g.id)) next.groups.push(g);
-        });
-      }
-      next.nextGroupId = next.groups.reduce((m, g) => Math.max(m, g.id + 1), 1);
-      if (typeof raw.nextGroupId === 'number') next.nextGroupId = Math.max(next.nextGroupId, raw.nextGroupId);
-      if (typeof raw.activeGroup === 'number' && next.groups.some((g) => g.id === raw.activeGroup)) {
-        next.activeGroup = raw.activeGroup;
-      }
-    } else {
-      migrateOld(next);
+    if (isObj(raw)) readCurrent(raw, next);
+    else {
+      let old = null;
+      try { old = JSON.parse(localStorage.getItem(OLD_KEY) || 'null'); } catch (e) { old = null; }
+      if (isObj(old)) migrate(old, next);
     }
     d = next;
-  }
-
-  function nameTaken(name, exceptId) {
-    const low = name.toLowerCase();
-    return B().players.some((p) => p.id !== exceptId && p.name.toLowerCase() === low);
-  }
-
-  function groupNameTaken(name, exceptId) {
-    const low = name.toLowerCase();
-    return d.groups.some((g) => g.id !== exceptId && g.name.toLowerCase() === low);
-  }
-
-  function groupById(id) {
-    return d.groups.filter((g) => g.id === id)[0] || null;
-  }
-
-  function summary(g) {
-    return { id: g.id, name: g.name, players: g.players.length, used: usedCount(g.used), active: g.id === d.activeGroup };
+    let t = null;
+    try { t = JSON.parse(sessionStorage.getItem(TODAY_KEY) || 'null'); } catch (e) { t = null; }
+    today = Array.isArray(t) ? t.filter((id) => !!byId(id)) : [];
+    save();
   }
 
   const store = {
     NAME_MAX: NAME_MAX,
-    GROUP_NAME_MAX: GROUP_NAME_MAX,
+    PRESET_NAME_MAX: PRESET_NAME_MAX,
     MAX_PLAYERS: MAX_PLAYERS,
     load: load,
     save: save,
 
-    /* ----- roster (of the active group, or the guest roster) ----- */
-    players: () => B().players.slice(),
-    active: () => B().players.filter((p) => p.active).map((p) => ({ id: p.id, name: p.name })),
-    find: (id) => B().players.filter((p) => p.id === id)[0] || null,
+    /* ----- roster ----- */
+    // Everyone ever added, most recently played first.
+    players: () => d.players.slice().sort((a, b) => (b.last || 0) - (a.last || 0) || a.name.localeCompare(b.name))
+      .map((p) => ({ id: p.id, name: p.name, last: p.last || 0, active: today.indexOf(p.id) !== -1 })),
+    // Who plays today, in the order they were ticked.
+    active: () => today.map(byId).filter(Boolean).map((p) => ({ id: p.id, name: p.name })),
+    find: (id) => { const p = byId(id); return p ? { id: p.id, name: p.name, active: today.indexOf(id) !== -1 } : null; },
     color(id) {
-      const i = B().players.findIndex((p) => p.id === id);
-      return NEON[(i < 0 ? 0 : i) % NEON.length];
+      const i = d.players.findIndex((p) => p.id === id);
+      return COLORS[(i < 0 ? 0 : i) % COLORS.length];
     },
-    neon: (i) => NEON[i % NEON.length],
+    neon: (i) => COLORS[i % COLORS.length],
 
     add(name) {
-      const n = cleanName(name);
-      const b = B();
+      const n = clean(name, NAME_MAX);
       if (!n) return { err: 'Vul een naam in' };
-      if (b.players.length >= MAX_PLAYERS) return { err: 'Maximaal ' + MAX_PLAYERS + ' spelers' };
-      if (nameTaken(n, -1)) return { err: 'Die naam bestaat al' };
-      const p = { id: b.nextId++, name: n, active: true };
-      b.players.push(p);
+      const existing = byName(n);
+      if (existing) {
+        if (today.indexOf(existing.id) === -1) { today.push(existing.id); saveToday(); }
+        return { player: existing, existed: true };
+      }
+      if (d.players.length >= MAX_ROSTER) return { err: 'De spelerslijst is vol (' + MAX_ROSTER + ')' };
+      const p = { id: d.nextId++, name: n, last: 0 };
+      d.players.push(p);
+      today.push(p.id);
       save();
+      saveToday();
       return { player: p };
     },
     rename(id, name) {
-      const p = store.find(id);
-      const n = cleanName(name);
+      const p = byId(id);
+      const n = clean(name, NAME_MAX);
       if (!p) return { err: 'Speler niet gevonden' };
       if (!n) return { err: 'Vul een naam in' };
-      if (nameTaken(n, id)) return { err: 'Die naam bestaat al' };
+      const other = byName(n);
+      if (other && other.id !== id) return { err: 'Die naam bestaat al' };
       p.name = n;
       save();
       return { player: p };
     },
     remove(id) {
-      const b = B();
-      b.players = b.players.filter((p) => p.id !== id);
-      delete b.scores[id];
+      d.players = d.players.filter((p) => p.id !== id);
+      delete d.scores[id];
+      d.presets.forEach((g) => { g.members = g.members.filter((m) => m !== id); });
+      today = today.filter((x) => x !== id);
       save();
+      saveToday();
     },
     setActive(id, on) {
-      const p = store.find(id);
-      if (p) { p.active = !!on; save(); }
+      if (!byId(id)) return;
+      const i = today.indexOf(id);
+      if (on && i === -1) today.push(id);
+      if (!on && i !== -1) today.splice(i, 1);
+      saveToday();
+    },
+    clearToday() { today = []; saveToday(); },
+    // Stamps "last played" on everyone playing today (called when a game starts).
+    touchToday() {
+      const now = Date.now();
+      today.forEach((id) => { const p = byId(id); if (p) p.last = now; });
+      save();
     },
 
-    /* ----- shared scoreboard (per group) ----- */
-    score: (id) => B().scores[id] || { pts: 0, wins: 0 },
+    /* ----- group presets ----- */
+    presets: () => d.presets.map((g) => ({ id: g.id, name: g.name, members: g.members.slice() })),
+    savePreset(name) {
+      const n = clean(name, PRESET_NAME_MAX);
+      if (!n) return { err: 'Vul een groepsnaam in' };
+      if (!today.length) return { err: 'Vink eerst wie meespeelt' };
+      const low = n.toLowerCase();
+      const same = d.presets.filter((g) => g.name.toLowerCase() === low)[0];
+      if (same) { same.members = today.slice(); save(); return { preset: same, updated: true }; }
+      if (d.presets.length >= MAX_PRESETS) return { err: 'Maximaal ' + MAX_PRESETS + ' groepen' };
+      const g = { id: d.nextPresetId++, name: n, members: today.slice() };
+      d.presets.push(g);
+      save();
+      return { preset: g };
+    },
+    applyPreset(id) {
+      const g = d.presets.filter((x) => x.id === id)[0];
+      if (!g) return 0;
+      let added = 0;
+      g.members.forEach((m) => { if (byId(m) && today.indexOf(m) === -1) { today.push(m); added++; } });
+      saveToday();
+      return added;
+    },
+    deletePreset(id) { d.presets = d.presets.filter((g) => g.id !== id); save(); },
+
+    /* ----- scoreboard ----- */
+    score: (id) => d.scores[id] || { pts: 0, wins: 0 },
     addPoints(id, n) {
-      const p = store.find(id);
-      if (!p || !n) return;
-      const b = B();
-      const s = b.scores[id] || (b.scores[id] = { pts: 0, wins: 0 });
+      if (!byId(id) || !n) return;
+      const s = d.scores[id] || (d.scores[id] = { pts: 0, wins: 0 });
       s.pts = Math.max(0, s.pts + Math.round(n));
-      const g = group();
-      if (g && (!g.best.high || s.pts > g.best.high.pts)) g.best.high = { n: p.name, pts: s.pts };
       save();
     },
     addWin(id) {
-      const p = store.find(id);
-      if (!p) return;
-      const b = B();
-      const s = b.scores[id] || (b.scores[id] = { pts: 0, wins: 0 });
+      if (!byId(id)) return;
+      const s = d.scores[id] || (d.scores[id] = { pts: 0, wins: 0 });
       s.wins += 1;
-      const g = group();
-      if (g) {
-        g.totalWins += 1;
-        g.history.push({ t: Date.now(), n: p.name });
-        if (g.history.length > HISTORY_MAX) g.history = g.history.slice(-HISTORY_MAX);
-      }
       save();
     },
-    resetScores() { B().scores = {}; save(); },
+    resetScores() { d.scores = {}; save(); },
+    recordTime() { /* kept for compatibility: no group records any more */ },
 
-    /* Fastest solve time of the active group. No game calls this yet; it is the hook a timed game uses. */
-    recordTime(game, ms, name) {
-      const g = group();
-      if (!g || !isFinite(ms) || ms <= 0) return;
-      if (!g.best.fast || ms < g.best.fast.ms) {
-        g.best.fast = { n: cleanName(name), ms: Math.round(ms), game: String(game || '').slice(0, 24) };
-        save();
-      }
-    },
-
-    /* ----- per-game settings (persisted, mutate the returned object then call save) ----- */
+    /* ----- per-game settings (mutate the returned object, then call save) ----- */
     cfg(id, defaults) {
       const cur = isObj(d.cfg[id]) ? d.cfg[id] : {};
       const out = {};
@@ -248,96 +254,31 @@
       return out;
     },
 
-    /* ----- no-repeat drawing from a content pool (memory of the active group, or of the guest) ----- */
+    /* ----- no-repeat drawing from a content pool ----- */
     freshCount(key, items, idOf) {
       const of = idOf || ((it, i) => i);
-      const used = LG.toMap((B().used[key] || []).map(String));
+      const used = LG.toMap((d.used[key] || []).map(String));
       return items.filter((it, i) => !used[String(of(it, i))]).length;
     },
     draw(key, items, idOf) {
       const of = idOf || ((it, i) => i);
-      const b = B();
       const ids = items.map((it, i) => String(of(it, i)));
-      const used = LG.toMap((b.used[key] || []).map(String));
+      const used = LG.toMap((d.used[key] || []).map(String));
       let fresh = [];
       items.forEach((it, i) => { if (!used[ids[i]]) fresh.push(i); });
       let recycled = false;
       if (!fresh.length) {
         const inPool = LG.toMap(ids);
-        b.used[key] = (b.used[key] || []).filter((x) => !inPool[String(x)]);
+        d.used[key] = (d.used[key] || []).filter((x) => !inPool[String(x)]);
         fresh = items.map((it, i) => i);
         recycled = true;
       }
       const pick = fresh[LG.rand(fresh.length)];
-      (b.used[key] = b.used[key] || []).push(ids[pick]);
+      (d.used[key] = d.used[key] || []).push(ids[pick]);
       save();
       return { item: items[pick], index: pick, recycled: recycled };
     },
-
-    /* ----- group profiles ----- */
-    MAX_GROUPS: MAX_GROUPS,
-    groups: () => d.groups.map(summary),
-    activeGroup() {
-      const g = group();
-      return g ? { id: g.id, name: g.name } : null;
-    },
-    createGroup(name) {
-      const n = cleanGroupName(name);
-      if (!n) return { err: 'Vul een groepsnaam in' };
-      if (d.groups.length >= MAX_GROUPS) return { err: 'Maximaal ' + MAX_GROUPS + ' groepen' };
-      if (groupNameTaken(n, -1)) return { err: 'Die groep bestaat al' };
-      const g = Object.assign(bucketBlank(), {
-        id: d.nextGroupId++, name: n, totalWins: 0, history: [], best: { high: null, fast: null }
-      });
-      // A new group starts with the players that are active right now (guest or previous group).
-      B().players.forEach((p) => { if (p.active) g.players.push({ id: g.nextId++, name: p.name, active: true }); });
-      d.groups.push(g);
-      d.activeGroup = g.id;
-      save();
-      announce();
-      return { group: summary(g) };
-    },
-    switchGroup(id) {
-      if (id !== null && !groupById(id)) return false;
-      d.activeGroup = id;
-      save();
-      announce();
-      return true;
-    },
-    renameGroup(id, name) {
-      const g = groupById(id);
-      const n = cleanGroupName(name);
-      if (!g) return { err: 'Groep niet gevonden' };
-      if (!n) return { err: 'Vul een groepsnaam in' };
-      if (groupNameTaken(n, id)) return { err: 'Die groep bestaat al' };
-      g.name = n;
-      save();
-      announce();
-      return { group: summary(g) };
-    },
-    deleteGroup(id) {
-      if (!groupById(id)) return;
-      d.groups = d.groups.filter((g) => g.id !== id);
-      if (d.activeGroup === id) d.activeGroup = null;
-      save();
-      announce();
-    },
-    resetUsed(id) {
-      const g = groupById(id);
-      if (!g) return;
-      g.used = {};
-      save();
-      announce();
-    },
-    stats(id) {
-      const g = groupById(id);
-      if (!g) return null;
-      const rows = g.players.map((p) => {
-        const s = g.scores[p.id] || { pts: 0, wins: 0 };
-        return { name: p.name, pts: s.pts, wins: s.wins };
-      }).sort((a, b) => b.pts - a.pts || b.wins - a.wins || a.name.localeCompare(b.name));
-      return { name: g.name, rows: rows, totalWins: g.totalWins, high: g.best.high, fast: g.best.fast, used: usedCount(g.used) };
-    }
+    resetUsed() { d.used = {}; save(); }
   };
 
   LG.store = store;
