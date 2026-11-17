@@ -129,22 +129,25 @@
     cards = LG.games.map((g, i) => {
       const m = LG.gameMeta(g.id);
       const need = h('span', { class: 'need', hidden: true });
-      const play = h('button', { type: 'button', class: 'btn btn-primary gplay', onclick: (e) => { e.stopPropagation(); if (i === activeCard) LG.openGame(g.id); else scrollToCard(i); } }, 'Speel ' + m.name);
       const icon = h('img', { class: 'gico', src: ICON(m.icon), alt: '' });
-      const card = h('article', { class: 'gcard glass', style: '--c:' + m.color, 'aria-label': m.name },
+      // The whole card is the play button; a round play badge hints at that without words.
+      const card = h('article', { class: 'gcard glass', style: '--c:' + m.color, role: 'button', tabindex: '0', 'aria-label': 'Speel ' + m.name },
         need,
         icon,
         h('h2', { class: 'gname' }, m.name),
         h('p', { class: 'gtag' }, m.tag),
         h('span', { class: 'gmeta' }, g.min + ' tot ' + g.max + ' spelers'),
-        h('span', { class: 'gspacer' }),
-        play
+        h('span', { class: 'ggo', 'aria-hidden': 'true' }, LG.icon('play'))
       );
-      card.addEventListener('click', () => {
+      const choose = () => {
         if (i !== activeCard) { scrollToCard(i); return; }
         LG.restart(icon, 'wiggle');
-        LG.buzz(6);
-      });
+        LG.restart(card, 'chosen');
+        LG.buzz(10);
+        setTimeout(() => LG.openGame(g.id), 280);
+      };
+      card.addEventListener('click', choose);
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); } });
       rail.appendChild(card);
       return { el: card, need: need, icon: icon, game: g };
     });
